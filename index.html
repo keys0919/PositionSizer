@@ -404,6 +404,7 @@
     <label>총 투자금 (원)</label>
     <input type="text" id="t1-total" inputmode="numeric" placeholder="0" oninput="onAmtInput(this, calcTab1)">
     <div class="unit-btns">
+      <button class="unit-btn" onclick="applyUnit('t1-total', 1000, calcTab1)">000</button>
       <button class="unit-btn" onclick="applyUnit('t1-total', 10000, calcTab1)">만</button>
       <button class="unit-btn" onclick="applyUnit('t1-total', 100000000, calcTab1)">억</button>
       <button class="unit-btn" onclick="clearAmt('t1-total', calcTab1)">C</button>
@@ -437,6 +438,7 @@
     <label>총 투자금 (원)</label>
     <input type="text" id="t2-total" inputmode="numeric" placeholder="0" oninput="onAmtInput(this, calcTab2)">
     <div class="unit-btns">
+      <button class="unit-btn" onclick="applyUnit('t2-total', 1000, calcTab2)">000</button>
       <button class="unit-btn" onclick="applyUnit('t2-total', 10000, calcTab2)">만</button>
       <button class="unit-btn" onclick="applyUnit('t2-total', 100000000, calcTab2)">억</button>
       <button class="unit-btn" onclick="clearAmt('t2-total', calcTab2)">C</button>
@@ -447,6 +449,7 @@
     <label>1슬롯 현재 보유금 (원)</label>
     <input type="text" id="t2-holding" inputmode="numeric" placeholder="0" oninput="onAmtInput(this, calcTab2)">
     <div class="unit-btns">
+      <button class="unit-btn" onclick="applyUnit('t2-holding', 1000, calcTab2)">000</button>
       <button class="unit-btn" onclick="applyUnit('t2-holding', 10000, calcTab2)">만</button>
       <button class="unit-btn" onclick="applyUnit('t2-holding', 100000000, calcTab2)">억</button>
       <button class="unit-btn" onclick="clearAmt('t2-holding', calcTab2)">C</button>
