@@ -381,6 +381,26 @@
     .adjust-amount.neg { color: var(--neg); }
     .adjust-amount.zero { color: var(--text-3); }
 
+    /* ── 탭2 서브 그룹 ── */
+    .sub-group {
+      border-left: 2px solid var(--border);
+      padding-left: 16px;
+      margin-left: 2px;
+      margin-bottom: 20px;
+    }
+
+    .sub-group-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 16px;
+    }
+
+    .sub-group .field { margin-bottom: 16px; }
+    .sub-group .field:last-child { margin-bottom: 0; }
+
     /* ── 빈 상태 ── */
     .empty {
       padding: 48px 0 16px;
@@ -445,23 +465,27 @@
     </div>
   </div>
 
-  <div class="field">
-    <label>1슬롯 현재 보유금 (원)</label>
-    <input type="text" id="t2-holding" inputmode="numeric" placeholder="0" oninput="onAmtInput(this, calcTab2)">
-    <div class="unit-btns">
-      <button class="unit-btn" onclick="applyUnit('t2-holding', 1000, calcTab2)">000</button>
-      <button class="unit-btn" onclick="applyUnit('t2-holding', 10000, calcTab2)">만</button>
-      <button class="unit-btn" onclick="applyUnit('t2-holding', 100000000, calcTab2)">억</button>
-      <button class="unit-btn" onclick="clearAmt('t2-holding', calcTab2)">C</button>
-    </div>
-  </div>
+  <div class="sub-group">
+    <div class="sub-group-label">현재 1슬롯</div>
 
-  <div class="field">
-    <label>1슬롯 현재 차수</label>
-    <div class="btn-group">
-      <button id="t2-s1-1" class="active" onclick="setSlot1Step(1)">1차</button>
-      <button id="t2-s1-2" onclick="setSlot1Step(2)">2차</button>
-      <button id="t2-s1-3" onclick="setSlot1Step(3)">3차</button>
+    <div class="field">
+      <label>보유금 (원)</label>
+      <input type="text" id="t2-holding" inputmode="numeric" placeholder="0" oninput="onAmtInput(this, calcTab2)">
+      <div class="unit-btns">
+        <button class="unit-btn" onclick="applyUnit('t2-holding', 1000, calcTab2)">000</button>
+        <button class="unit-btn" onclick="applyUnit('t2-holding', 10000, calcTab2)">만</button>
+        <button class="unit-btn" onclick="applyUnit('t2-holding', 100000000, calcTab2)">억</button>
+        <button class="unit-btn" onclick="clearAmt('t2-holding', calcTab2)">C</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>현재 차수</label>
+      <div class="btn-group">
+        <button id="t2-s1-1" class="active" onclick="setSlot1Step(1)">1차</button>
+        <button id="t2-s1-2" onclick="setSlot1Step(2)">2차</button>
+        <button id="t2-s1-3" onclick="setSlot1Step(3)">3차</button>
+      </div>
     </div>
   </div>
 
