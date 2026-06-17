@@ -702,7 +702,7 @@
       <div class="section-label">1슬롯 조정</div>
       <div class="adjust-callout ${adjClass}">
         <div class="adjust-callout-tag">${adjTag}</div>
-        <div class="adjust-callout-amt ${adjClass}">${fmt(Math.abs(adjust))}</div>
+        <div class="adjust-callout-amt ${adjClass}">${adjust > 0 ? '+' : adjust < 0 ? '−' : ''}${fmt(Math.abs(adjust))}</div>
       </div>
 
       <div class="result-divider"></div>
