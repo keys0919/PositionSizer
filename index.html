@@ -545,14 +545,20 @@
   }
 
   function onAmtInput(el, recalc) {
-    const digits = el.value.replace(/[^0-9]/g, '');
-    const n = parseInt(digits, 10);
-    const cursor = el.selectionStart;
-    const prevLen = el.value.length;
-    el.value = isNaN(n) ? '' : n.toLocaleString('ko-KR');
-    // 커서 보정 (콤마 삽입으로 밀림 방지)
-    const diff = el.value.length - prevLen;
-    el.setSelectionRange(cursor + diff, cursor + diff);
+    const prevDigits = (el.dataset.fmt || '').replace(/[^0-9]/g, '');
+    const prevLen   = (el.dataset.fmt || '').length;
+    const curDigits = el.value.replace(/[^0-9]/g, '');
+    const curLen    = el.value.length;
+
+    // 콤마에 backspace가 걸린 경우: 길이는 줄었지만 digit는 그대로 → 마지막 digit 추가 제거
+    let digits = curDigits;
+    if (digits === prevDigits && curLen < prevLen) {
+      digits = digits.slice(0, -1);
+    }
+
+    const formatted = digits === '' ? '' : parseInt(digits, 10).toLocaleString('ko-KR');
+    el.value = formatted;
+    el.dataset.fmt = formatted;
     recalc();
   }
 
@@ -560,12 +566,16 @@
     const el = document.getElementById(id);
     const n = rawVal(id);
     if (n <= 0) return;
-    el.value = (n * unit).toLocaleString('ko-KR');
+    const formatted = (n * unit).toLocaleString('ko-KR');
+    el.value = formatted;
+    el.dataset.fmt = formatted;
     recalc();
   }
 
   function clearAmt(id, recalc) {
-    document.getElementById(id).value = '';
+    const el = document.getElementById(id);
+    el.value = '';
+    el.dataset.fmt = '';
     recalc();
   }
 
