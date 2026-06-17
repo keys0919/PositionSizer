@@ -5,53 +5,70 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#0f0f0f">
+  <meta name="theme-color" content="#0d0d0d">
   <title>비중 계산기</title>
   <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0f0f0f;
-      --surface: #1a1a1a;
-      --border: #2a2a2a;
-      --accent: #f0b429;
-      --text: #e8e8e8;
-      --muted: #888;
-      --positive: #4caf82;
-      --negative: #e05c5c;
+      --bg:           #0d0d0d;
+      --surface:      #141414;
+      --surface-up:   #1c1c1e;
+      --border:       #242424;
+      --border-sub:   #1a1a1a;
+      --accent:       #c8981e;
+      --accent-dim:   #1a1100;
+      --accent-line:  #3a2a00;
+      --text-1:       #efefef;
+      --text-2:       #aaa;
+      --text-3:       #666;
+      --pos:          #3a9a6a;
+      --pos-dim:      #0d1f16;
+      --neg:          #c24a4a;
+      --neg-dim:      #1f0d0d;
     }
+
+    html { -webkit-text-size-adjust: 100%; }
 
     body {
       background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, 'Helvetica Neue', sans-serif;
+      color: var(--text-1);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
       font-size: 16px;
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
       min-height: 100dvh;
-      padding-bottom: env(safe-area-inset-bottom);
+      padding-bottom: calc(env(safe-area-inset-bottom) + 24px);
     }
 
-    /* 탭 네비게이션 */
+    /* ── 탭 네비게이션 ── */
     .tab-nav {
       display: flex;
-      border-bottom: 1px solid var(--border);
       background: var(--surface);
+      border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
       z-index: 10;
+      padding-top: env(safe-area-inset-top);
     }
 
     .tab-btn {
       flex: 1;
-      padding: 14px 8px;
+      padding: 15px 8px 13px;
       background: none;
       border: none;
-      color: var(--muted);
-      font-size: 15px;
-      font-weight: 500;
-      cursor: pointer;
       border-bottom: 2px solid transparent;
-      transition: color 0.15s, border-color 0.15s;
+      color: var(--text-3);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      transition: color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                  border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      -webkit-tap-highlight-color: transparent;
     }
 
     .tab-btn.active {
@@ -59,204 +76,318 @@
       border-bottom-color: var(--accent);
     }
 
-    /* 탭 패널 */
-    .tab-panel { display: none; padding: 20px 16px; }
+    .tab-btn:active { opacity: 0.6; }
+
+    /* ── 탭 패널 ── */
+    .tab-panel {
+      display: none;
+      padding: 24px 20px 0;
+      animation: fadeIn 0.18s ease-out;
+    }
+
     .tab-panel.active { display: block; }
 
-    /* 입력 그룹 */
-    .field {
-      margin-bottom: 18px;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
+
+    /* ── 입력 필드 ── */
+    .field { margin-bottom: 20px; }
 
     .field label {
       display: block;
-      font-size: 13px;
-      color: var(--muted);
-      margin-bottom: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-2);
+      margin-bottom: 8px;
     }
 
-    .field input[type="number"] {
+    .field input[type="text"] {
       width: 100%;
-      padding: 12px 14px;
+      padding: 13px 16px;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 18px;
+      border-radius: 10px;
+      color: var(--text-1);
+      font-family: inherit;
+      font-size: 20px;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
       outline: none;
       -webkit-appearance: none;
+      appearance: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
 
-    .field input[type="number"]:focus {
-      border-color: var(--accent);
+    .field input[type="text"]:focus {
+      border-color: var(--accent-line);
+      box-shadow: 0 0 0 3px rgba(200, 152, 30, 0.08);
     }
 
-    /* 버튼 그룹 (차수 선택) */
-    .btn-group {
+    .field input[type="text"]::placeholder { color: var(--text-3); }
+
+    /* 단위 버튼 */
+    .unit-btns {
       display: flex;
-      gap: 8px;
+      gap: 6px;
+      margin-top: 7px;
     }
 
-    .btn-group button {
-      flex: 1;
-      padding: 11px 0;
+    .unit-btn {
+      padding: 6px 12px;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--muted);
-      font-size: 15px;
+      border-radius: 7px;
+      color: #bbb;
+      font-family: inherit;
+      font-size: 13px;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .unit-btn:active {
+      transform: scale(0.94);
+      background: var(--accent-dim);
+      border-color: var(--accent-line);
+      color: var(--accent);
+      transition-duration: 0.08s;
+    }
+
+    /* ── 버튼 그룹 ── */
+    .btn-group {
+      display: flex;
+      gap: 7px;
+    }
+
+    .btn-group button,
+    .toggle-group button {
+      flex: 1;
+      padding: 12px 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: #bbb;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-group button:active,
+    .toggle-group button:active {
+      transform: scale(0.96);
+      transition-duration: 0.08s;
     }
 
     .btn-group button.active {
       background: var(--accent);
       border-color: var(--accent);
-      color: #000;
+      color: #0d0d0d;
+      font-weight: 600;
     }
 
-    /* 가중 진입 토글 */
-    .toggle-group {
-      display: flex;
-      gap: 8px;
-    }
-
-    .toggle-group button {
-      flex: 1;
-      padding: 11px 0;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--muted);
-      font-size: 15px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
+    .toggle-group { display: flex; gap: 7px; }
 
     .toggle-group button.active {
-      background: #2a2000;
-      border-color: var(--accent);
+      background: var(--accent-dim);
+      border-color: var(--accent-line);
       color: var(--accent);
     }
 
-    /* 구분선 */
+    /* ── 구분선 ── */
     .divider {
       height: 1px;
       background: var(--border);
-      margin: 20px 0;
+      margin: 24px -20px;
     }
 
-    /* 결과 영역 */
-    .result-main {
-      background: var(--surface);
-      border-radius: 10px;
-      padding: 16px;
-      margin-bottom: 16px;
+    /* ── 진입금 포컬 블록 ── */
+    .entry-block {
+      padding: 20px 0 18px;
+      border-bottom: 1px solid var(--border-sub);
+      margin-bottom: 20px;
     }
 
-    .result-main .label {
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 4px;
+    .entry-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-2);
+      margin-bottom: 6px;
     }
 
-    .result-main .amount {
-      font-size: 28px;
+    .entry-amount {
+      font-size: 36px;
       font-weight: 700;
+      letter-spacing: -0.02em;
       color: var(--accent);
-      letter-spacing: -0.5px;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
+      line-height: 1;
     }
 
-    /* 차수 계획 테이블 */
-    .plan-title {
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 10px;
+    .entry-badge {
+      display: inline-block;
+      margin-left: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-line);
+      border-radius: 4px;
+      padding: 2px 6px;
+      vertical-align: middle;
+      position: relative;
+      top: -4px;
+    }
+
+    /* ── 차수 계획 ── */
+    .plan-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 4px;
     }
 
     .plan-row {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--border);
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-sub);
+      position: relative;
+      transition: background 0.15s;
     }
 
     .plan-row:last-child { border-bottom: none; }
 
-    .plan-row .step {
-      font-size: 14px;
-      color: var(--muted);
-      width: 32px;
+    .plan-row.current::before {
+      content: '';
+      position: absolute;
+      left: -20px;
+      top: 0; bottom: 0;
+      width: 2px;
+      background: var(--accent);
+      border-radius: 0 2px 2px 0;
     }
 
-    .plan-row .step.current {
-      color: var(--accent);
+    .step-tag {
+      font-size: 12px;
       font-weight: 600;
+      letter-spacing: 0.03em;
+      color: var(--text-3);
+      width: 34px;
+      flex-shrink: 0;
     }
 
-    .plan-row .plan-amount {
+    .plan-row.current .step-tag { color: var(--accent); }
+
+    .plan-amount {
+      flex: 1;
       font-size: 17px;
       font-weight: 600;
-    }
-
-    .plan-row .pct {
-      font-size: 13px;
-      color: var(--muted);
-      width: 52px;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
+      color: var(--text-1);
       text-align: right;
     }
 
-    /* 탭2 슬롯 재배분 */
+    .plan-row.current .plan-amount { color: var(--accent); }
+
+    .plan-pct {
+      font-size: 12px;
+      color: var(--text-3);
+      width: 48px;
+      text-align: right;
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── 슬롯 재배분 ── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin: 22px 0 8px;
+    }
+
     .slot-row {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--border);
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border-sub);
     }
 
     .slot-row:last-child { border-bottom: none; }
 
-    .slot-label { font-size: 14px; color: var(--muted); }
-    .slot-amount { font-size: 17px; font-weight: 600; }
-    .slot-pct { font-size: 13px; color: var(--muted); width: 52px; text-align: right; }
-
-    .adjust-box {
-      background: var(--surface);
-      border-radius: 10px;
-      padding: 14px 16px;
-      margin: 12px 0;
+    .slot-tag {
+      font-size: 13px;
+      color: var(--text-2);
+      flex-shrink: 0;
+      width: 80px;
     }
 
-    .adjust-box .adj-label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .slot-amount {
+      flex: 1;
+      font-size: 17px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
+      text-align: right;
+    }
 
-    .adjust-box .adj-amount {
+    .slot-pct {
+      font-size: 12px;
+      color: var(--text-3);
+      width: 48px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* ── 1슬롯 조정 ── */
+    .adjust-row {
+      display: flex;
+      align-items: center;
+      padding: 14px 0;
+    }
+
+    .adjust-tag {
+      font-size: 13px;
+      color: var(--text-2);
+      flex: 1;
+    }
+
+    .adjust-amount {
       font-size: 20px;
       font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
+      letter-spacing: -0.01em;
     }
 
-    .adj-amount.positive { color: var(--positive); }
-    .adj-amount.negative { color: var(--negative); }
-    .adj-amount.zero { color: var(--muted); }
+    .adjust-amount.pos { color: var(--pos); }
+    .adjust-amount.neg { color: var(--neg); }
+    .adjust-amount.zero { color: var(--text-3); }
 
-    .section-title {
-      font-size: 13px;
-      color: var(--muted);
-      margin: 20px 0 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    /* 빈 상태 */
+    /* ── 빈 상태 ── */
     .empty {
+      padding: 48px 0 16px;
       text-align: center;
-      color: var(--muted);
       font-size: 14px;
-      padding: 40px 0;
+      color: var(--text-3);
+      letter-spacing: 0.02em;
     }
   </style>
 </head>
@@ -271,7 +402,12 @@
 <div id="tab1" class="tab-panel active">
   <div class="field">
     <label>총 투자금 (원)</label>
-    <input type="number" id="t1-total" inputmode="numeric" placeholder="100000000" oninput="calcTab1()">
+    <input type="text" id="t1-total" inputmode="numeric" placeholder="0" oninput="onAmtInput(this, calcTab1)">
+    <div class="unit-btns">
+      <button class="unit-btn" onclick="applyUnit('t1-total', 10000, calcTab1)">만</button>
+      <button class="unit-btn" onclick="applyUnit('t1-total', 100000000, calcTab1)">억</button>
+      <button class="unit-btn" onclick="clearAmt('t1-total', calcTab1)">C</button>
+    </div>
   </div>
 
   <div class="field">
@@ -283,7 +419,7 @@
     </div>
   </div>
 
-  <div class="field" id="t1-weighted-field">
+  <div class="field" id="t1-weighted-field" style="display:none">
     <label>가중 진입</label>
     <div class="toggle-group">
       <button id="t1-w0" class="active" onclick="setWeighted(false)">없음</button>
@@ -299,12 +435,22 @@
 <div id="tab2" class="tab-panel">
   <div class="field">
     <label>총 투자금 (원)</label>
-    <input type="number" id="t2-total" inputmode="numeric" placeholder="100000000" oninput="calcTab2()">
+    <input type="text" id="t2-total" inputmode="numeric" placeholder="0" oninput="onAmtInput(this, calcTab2)">
+    <div class="unit-btns">
+      <button class="unit-btn" onclick="applyUnit('t2-total', 10000, calcTab2)">만</button>
+      <button class="unit-btn" onclick="applyUnit('t2-total', 100000000, calcTab2)">억</button>
+      <button class="unit-btn" onclick="clearAmt('t2-total', calcTab2)">C</button>
+    </div>
   </div>
 
   <div class="field">
     <label>1슬롯 현재 보유금 (원)</label>
-    <input type="number" id="t2-holding" inputmode="numeric" placeholder="0" oninput="calcTab2()">
+    <input type="text" id="t2-holding" inputmode="numeric" placeholder="0" oninput="onAmtInput(this, calcTab2)">
+    <div class="unit-btns">
+      <button class="unit-btn" onclick="applyUnit('t2-holding', 10000, calcTab2)">만</button>
+      <button class="unit-btn" onclick="applyUnit('t2-holding', 100000000, calcTab2)">억</button>
+      <button class="unit-btn" onclick="clearAmt('t2-holding', calcTab2)">C</button>
+    </div>
   </div>
 
   <div class="field">
@@ -330,13 +476,11 @@
 </div>
 
 <script>
-  // 상태
   const state = {
     t1: { step: 1, weighted: false },
     t2: { slot1Step: 1, slot2Step: 1 }
   };
 
-  // 탭 전환
   function switchTab(id) {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -344,22 +488,50 @@
     document.querySelectorAll('.tab-btn')[id === 'tab1' ? 0 : 1].classList.add('active');
   }
 
-  // 숫자 포맷
+  // ── 입력 유틸 ──────────────────────────────────
+
+  function rawVal(id) {
+    const v = document.getElementById(id).value.replace(/,/g, '');
+    return parseFloat(v) || 0;
+  }
+
+  function onAmtInput(el, recalc) {
+    const digits = el.value.replace(/[^0-9]/g, '');
+    const n = parseInt(digits, 10);
+    const cursor = el.selectionStart;
+    const prevLen = el.value.length;
+    el.value = isNaN(n) ? '' : n.toLocaleString('ko-KR');
+    // 커서 보정 (콤마 삽입으로 밀림 방지)
+    const diff = el.value.length - prevLen;
+    el.setSelectionRange(cursor + diff, cursor + diff);
+    recalc();
+  }
+
+  function applyUnit(id, unit, recalc) {
+    const el = document.getElementById(id);
+    const n = rawVal(id);
+    if (n <= 0) return;
+    el.value = (n * unit).toLocaleString('ko-KR');
+    recalc();
+  }
+
+  function clearAmt(id, recalc) {
+    document.getElementById(id).value = '';
+    recalc();
+  }
+
   function fmt(n) {
     if (!isFinite(n) || n === null) return '—';
     return Math.round(n).toLocaleString('ko-KR') + '원';
   }
 
-  function pct(n) {
-    return n.toFixed(1) + '%';
-  }
+  function pct(n) { return n.toFixed(1) + '%'; }
 
-  // ── 탭1 ─────────────────────────────────────────
+  // ── 탭1 ──────────────────────────────────────────
 
   function setStep1(n) {
     state.t1.step = n;
     [1, 2, 3].forEach(i => document.getElementById('t1-step' + i).classList.toggle('active', i === n));
-    // 가중 진입은 2차에서만 의미 있음
     document.getElementById('t1-weighted-field').style.display = n === 2 ? '' : 'none';
     if (n !== 2) setWeighted(false);
     calcTab1();
@@ -373,7 +545,7 @@
   }
 
   function calcTab1() {
-    const total = parseFloat(document.getElementById('t1-total').value);
+    const total = rawVal('t1-total');
     const el = document.getElementById('t1-result');
 
     if (!total || total <= 0) {
@@ -381,40 +553,34 @@
       return;
     }
 
-    const RATIOS = [1 / 5, 3 / 5, 1 / 5]; // 1차, 2차, 3차
+    const RATIOS = [1 / 5, 3 / 5, 1 / 5];
     const { step, weighted } = state.t1;
-
     const amounts = RATIOS.map(r => total * r);
 
-    let thisEntry;
-    if (weighted && step === 2) {
-      thisEntry = amounts[0] + amounts[1]; // 1차분 + 2차분
-    } else {
-      thisEntry = amounts[step - 1];
-    }
+    const thisEntry = (weighted && step === 2) ? amounts[0] + amounts[1] : amounts[step - 1];
+    const badge = (weighted && step === 2) ? '<span class="entry-badge">가중</span>' : '';
 
     const rows = [1, 2, 3].map(i => {
-      const isCurrent = i === step;
-      const label = weighted && step === 2 && i === 2 ? `2차 <span style="font-size:12px;color:var(--accent)">(가중)</span>` : `${i}차`;
-      return `
-        <div class="plan-row">
-          <span class="step ${isCurrent ? 'current' : ''}">${label}</span>
-          <span class="plan-amount">${fmt(amounts[i - 1])}</span>
-          <span class="pct">${pct(RATIOS[i - 1] * 100)}</span>
-        </div>`;
+      const cur = i === step;
+      const tag = (weighted && step === 2 && i === 2) ? '2차*' : `${i}차`;
+      return `<div class="plan-row ${cur ? 'current' : ''}">
+        <span class="step-tag">${tag}</span>
+        <span class="plan-amount">${fmt(amounts[i - 1])}</span>
+        <span class="plan-pct">${pct(RATIOS[i - 1] * 100)}</span>
+      </div>`;
     }).join('');
 
     el.innerHTML = `
-      <div class="result-main">
-        <div class="label">이번 진입금${weighted && step === 2 ? ' (가중)' : ''}</div>
-        <div class="amount">${fmt(thisEntry)}</div>
+      <div class="entry-block">
+        <div class="entry-label">이번 진입금</div>
+        <div class="entry-amount">${fmt(thisEntry)}${badge}</div>
       </div>
-      <p class="plan-title">차수 전체 계획</p>
+      <div class="plan-label">차수 전체 계획</div>
       ${rows}
     `;
   }
 
-  // ── 탭2 ─────────────────────────────────────────
+  // ── 탭2 ──────────────────────────────────────────
 
   function setSlot1Step(n) {
     state.t2.slot1Step = n;
@@ -429,8 +595,8 @@
   }
 
   function calcTab2() {
-    const total = parseFloat(document.getElementById('t2-total').value);
-    const holding = parseFloat(document.getElementById('t2-holding').value) || 0;
+    const total = rawVal('t2-total');
+    const holding = rawVal('t2-holding');
     const el = document.getElementById('t2-result');
 
     if (!total || total <= 0) {
@@ -438,68 +604,61 @@
       return;
     }
 
-    const S1_RATIO = 2 / 3;
-    const S2_RATIO = 1 / 3;
-    const STEP_RATIOS = [1 / 5, 3 / 5, 1 / 5];
+    const S1 = 2 / 3, S2 = 1 / 3;
+    const STEPS = [1 / 5, 3 / 5, 1 / 5];
 
-    const slot1Target = total * S1_RATIO;
-    const slot2Target = total * S2_RATIO;
-
+    const slot1Target = total * S1;
+    const slot2Target = total * S2;
     const adjust = slot1Target - holding;
 
     const s2Step = state.t2.slot2Step;
-    const s2Entry = slot2Target * STEP_RATIOS[s2Step - 1];
+    const s2Entry = slot2Target * STEPS[s2Step - 1];
+    const s2Amounts = STEPS.map(r => slot2Target * r);
 
-    const s2Amounts = STEP_RATIOS.map(r => slot2Target * r);
-
-    const adjustClass = adjust > 0 ? 'positive' : adjust < 0 ? 'negative' : 'zero';
-    const adjustLabel = adjust > 0 ? '추가 여지' : adjust < 0 ? '청산 필요' : '조정 없음';
+    const adjClass = adjust > 0 ? 'pos' : adjust < 0 ? 'neg' : 'zero';
+    const adjTag = adjust > 0 ? '추가 여지' : adjust < 0 ? '청산 필요' : '조정 없음';
 
     const s2Rows = [1, 2, 3].map(i => `
-      <div class="plan-row">
-        <span class="step ${i === s2Step ? 'current' : ''}">${i}차</span>
+      <div class="plan-row ${i === s2Step ? 'current' : ''}">
+        <span class="step-tag">${i}차</span>
         <span class="plan-amount">${fmt(s2Amounts[i - 1])}</span>
-        <span class="pct">${pct(STEP_RATIOS[i - 1] * slot2Target / total * 100)}</span>
+        <span class="plan-pct">${pct(STEPS[i - 1] * S2 * 100)}</span>
       </div>`).join('');
 
     el.innerHTML = `
-      <p class="section-title">슬롯 재배분 (2:1)</p>
-      <div class="result-main">
-        <div class="slot-row">
-          <span class="slot-label">1슬롯 목표</span>
-          <span class="slot-amount">${fmt(slot1Target)}</span>
-          <span class="slot-pct">${pct(S1_RATIO * 100)}</span>
-        </div>
-        <div class="slot-row">
-          <span class="slot-label">2슬롯 목표</span>
-          <span class="slot-amount">${fmt(slot2Target)}</span>
-          <span class="slot-pct">${pct(S2_RATIO * 100)}</span>
-        </div>
+      <div class="section-label">슬롯 재배분 2:1</div>
+      <div class="slot-row">
+        <span class="slot-tag">1슬롯 목표</span>
+        <span class="slot-amount">${fmt(slot1Target)}</span>
+        <span class="slot-pct">${pct(S1 * 100)}</span>
+      </div>
+      <div class="slot-row">
+        <span class="slot-tag">2슬롯 목표</span>
+        <span class="slot-amount">${fmt(slot2Target)}</span>
+        <span class="slot-pct">${pct(S2 * 100)}</span>
       </div>
 
-      <p class="section-title">1슬롯 조정</p>
-      <div class="adjust-box">
-        <div class="adj-label">${adjustLabel}</div>
-        <div class="adj-amount ${adjustClass}">${fmt(Math.abs(adjust))}</div>
+      <div class="section-label">1슬롯 조정</div>
+      <div class="adjust-row">
+        <span class="adjust-tag">${adjTag}</span>
+        <span class="adjust-amount ${adjClass}">${fmt(Math.abs(adjust))}</span>
       </div>
 
-      <p class="section-title">2슬롯 — 이번 진입금</p>
-      <div class="result-main">
-        <div class="label">${s2Step}차 진입</div>
-        <div class="amount">${fmt(s2Entry)}</div>
+      <div class="section-label">2슬롯 — 이번 진입금</div>
+      <div class="entry-block" style="padding-top:12px">
+        <div class="entry-label">${s2Step}차 진입</div>
+        <div class="entry-amount">${fmt(s2Entry)}</div>
       </div>
 
-      <p class="plan-title">2슬롯 전체 계획</p>
+      <div class="plan-label">2슬롯 전체 계획</div>
       ${s2Rows}
     `;
   }
 
-  // PWA 서비스 워커 등록
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./service-worker.js');
   }
 
-  // 초기 렌더
   setStep1(1);
   calcTab2();
 </script>
