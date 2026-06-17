@@ -356,30 +356,52 @@
       flex-shrink: 0;
     }
 
-    /* ── 1슬롯 조정 ── */
-    .adjust-row {
-      display: flex;
-      align-items: center;
-      padding: 14px 0;
+    /* ── 슬롯 재배분 컨테이너 ── */
+    .rebalance-block {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 28px;
     }
 
-    .adjust-tag {
-      font-size: 13px;
+    /* ── 1슬롯 조정 콜아웃 ── */
+    .adjust-callout {
+      padding: 16px 18px;
+      border-radius: 10px;
+      border-left: 3px solid transparent;
+      margin-bottom: 4px;
+    }
+
+    .adjust-callout.pos { background: var(--pos-dim); border-left-color: var(--pos); }
+    .adjust-callout.neg { background: var(--neg-dim); border-left-color: var(--neg); }
+    .adjust-callout.zero { background: var(--surface); border-left-color: var(--border); }
+
+    .adjust-callout-tag {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
       color: var(--text-2);
-      flex: 1;
+      margin-bottom: 6px;
     }
 
-    .adjust-amount {
-      font-size: 20px;
+    .adjust-callout-amt {
+      font-size: 26px;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
       font-feature-settings: "tnum" 1;
-      letter-spacing: -0.01em;
+      letter-spacing: -0.02em;
     }
 
-    .adjust-amount.pos { color: var(--pos); }
-    .adjust-amount.neg { color: var(--neg); }
-    .adjust-amount.zero { color: var(--text-3); }
+    .adjust-callout-amt.pos { color: var(--pos); }
+    .adjust-callout-amt.neg { color: var(--neg); }
+    .adjust-callout-amt.zero { color: var(--text-3); }
+
+    /* ── 결과 구분선 ── */
+    .result-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 28px 0;
+    }
 
     /* ── 탭2 서브 그룹 ── */
     .sub-group {
@@ -654,26 +676,29 @@
 
     el.innerHTML = `
       <div class="section-label">슬롯 재배분 2:1</div>
-      <div class="slot-row">
-        <span class="slot-tag">1슬롯 목표</span>
-        <span class="slot-amount">${fmt(slot1Target)}</span>
-        <span class="slot-pct">${pct(S1 * 100)}</span>
-      </div>
-      <div class="slot-row">
-        <span class="slot-tag">2슬롯 목표</span>
-        <span class="slot-amount">${fmt(slot2Target)}</span>
-        <span class="slot-pct">${pct(S2 * 100)}</span>
+      <div class="rebalance-block">
+        <div class="slot-row">
+          <span class="slot-tag">1슬롯 목표</span>
+          <span class="slot-amount">${fmt(slot1Target)}</span>
+          <span class="slot-pct">${pct(S1 * 100)}</span>
+        </div>
+        <div class="slot-row">
+          <span class="slot-tag">2슬롯 목표</span>
+          <span class="slot-amount">${fmt(slot2Target)}</span>
+          <span class="slot-pct">${pct(S2 * 100)}</span>
+        </div>
       </div>
 
       <div class="section-label">1슬롯 조정</div>
-      <div class="adjust-row">
-        <span class="adjust-tag">${adjTag}</span>
-        <span class="adjust-amount ${adjClass}">${fmt(Math.abs(adjust))}</span>
+      <div class="adjust-callout ${adjClass}">
+        <div class="adjust-callout-tag">${adjTag}</div>
+        <div class="adjust-callout-amt ${adjClass}">${fmt(Math.abs(adjust))}</div>
       </div>
 
-      <div class="section-label">2슬롯 — 이번 진입금</div>
-      <div class="entry-block" style="padding-top:12px">
-        <div class="entry-label">${s2Step}차 진입</div>
+      <div class="result-divider"></div>
+
+      <div class="entry-block">
+        <div class="entry-label">2슬롯 — ${s2Step}차 진입금</div>
         <div class="entry-amount">${fmt(s2Entry)}</div>
       </div>
 
