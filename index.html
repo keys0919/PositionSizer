@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0f0f0f">
+  <title>비중 계산기</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f0f;
+      --surface: #1a1a1a;
+      --border: #2a2a2a;
+      --accent: #f0b429;
+      --text: #e8e8e8;
+      --muted: #888;
+      --positive: #4caf82;
+      --negative: #e05c5c;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, 'Helvetica Neue', sans-serif;
+      font-size: 16px;
+      min-height: 100dvh;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    /* 탭 네비게이션 */
+    .tab-nav {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 14px 8px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    /* 탭 패널 */
+    .tab-panel { display: none; padding: 20px 16px; }
+    .tab-panel.active { display: block; }
+
+    /* 입력 그룹 */
+    .field {
+      margin-bottom: 18px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .field input[type="number"] {
+      width: 100%;
+      padding: 12px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 18px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    .field input[type="number"]:focus {
+      border-color: var(--accent);
+    }
+
+    /* 버튼 그룹 (차수 선택) */
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-group button {
+      flex: 1;
+      padding: 11px 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-group button.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #000;
+    }
+
+    /* 가중 진입 토글 */
+    .toggle-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .toggle-group button {
+      flex: 1;
+      padding: 11px 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .toggle-group button.active {
+      background: #2a2000;
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* 구분선 */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 20px 0;
+    }
+
+    /* 결과 영역 */
+    .result-main {
+      background: var(--surface);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .result-main .label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .result-main .amount {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.5px;
+    }
+
+    /* 차수 계획 테이블 */
+    .plan-title {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .plan-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .plan-row:last-child { border-bottom: none; }
+
+    .plan-row .step {
+      font-size: 14px;
+      color: var(--muted);
+      width: 32px;
+    }
+
+    .plan-row .step.current {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .plan-row .plan-amount {
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    .plan-row .pct {
+      font-size: 13px;
+      color: var(--muted);
+      width: 52px;
+      text-align: right;
+    }
+
+    /* 탭2 슬롯 재배분 */
+    .slot-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .slot-row:last-child { border-bottom: none; }
+
+    .slot-label { font-size: 14px; color: var(--muted); }
+    .slot-amount { font-size: 17px; font-weight: 600; }
+    .slot-pct { font-size: 13px; color: var(--muted); width: 52px; text-align: right; }
+
+    .adjust-box {
+      background: var(--surface);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin: 12px 0;
+    }
+
+    .adjust-box .adj-label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+
+    .adjust-box .adj-amount {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .adj-amount.positive { color: var(--positive); }
+    .adj-amount.negative { color: var(--negative); }
+    .adj-amount.zero { color: var(--muted); }
+
+    .section-title {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 20px 0 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* 빈 상태 */
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+      padding: 40px 0;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('tab1')">1슬롯</button>
+  <button class="tab-btn" onclick="switchTab('tab2')">2슬롯 전환</button>
+</nav>
+
+<!-- 탭1: 1슬롯 계산 -->
+<div id="tab1" class="tab-panel active">
+  <div class="field">
+    <label>총 투자금 (원)</label>
+    <input type="number" id="t1-total" inputmode="numeric" placeholder="100000000" oninput="calcTab1()">
+  </div>
+
+  <div class="field">
+    <label>현재 차수</label>
+    <div class="btn-group">
+      <button id="t1-step1" class="active" onclick="setStep1(1)">1차</button>
+      <button id="t1-step2" onclick="setStep1(2)">2차</button>
+      <button id="t1-step3" onclick="setStep1(3)">3차</button>
+    </div>
+  </div>
+
+  <div class="field" id="t1-weighted-field">
+    <label>가중 진입</label>
+    <div class="toggle-group">
+      <button id="t1-w0" class="active" onclick="setWeighted(false)">없음</button>
+      <button id="t1-w1" onclick="setWeighted(true)">있음 (1차+2차)</button>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div id="t1-result"></div>
+</div>
+
+<!-- 탭2: 2슬롯 전환 계산 -->
+<div id="tab2" class="tab-panel">
+  <div class="field">
+    <label>총 투자금 (원)</label>
+    <input type="number" id="t2-total" inputmode="numeric" placeholder="100000000" oninput="calcTab2()">
+  </div>
+
+  <div class="field">
+    <label>1슬롯 현재 보유금 (원)</label>
+    <input type="number" id="t2-holding" inputmode="numeric" placeholder="0" oninput="calcTab2()">
+  </div>
+
+  <div class="field">
+    <label>1슬롯 현재 차수</label>
+    <div class="btn-group">
+      <button id="t2-s1-1" class="active" onclick="setSlot1Step(1)">1차</button>
+      <button id="t2-s1-2" onclick="setSlot1Step(2)">2차</button>
+      <button id="t2-s1-3" onclick="setSlot1Step(3)">3차</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>2슬롯 진입 차수</label>
+    <div class="btn-group">
+      <button id="t2-s2-1" class="active" onclick="setSlot2Step(1)">1차</button>
+      <button id="t2-s2-2" onclick="setSlot2Step(2)">2차</button>
+      <button id="t2-s2-3" onclick="setSlot2Step(3)">3차</button>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div id="t2-result"></div>
+</div>
+
+<script>
+  // 상태
+  const state = {
+    t1: { step: 1, weighted: false },
+    t2: { slot1Step: 1, slot2Step: 1 }
+  };
+
+  // 탭 전환
+  function switchTab(id) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.tab-btn')[id === 'tab1' ? 0 : 1].classList.add('active');
+  }
+
+  // 숫자 포맷
+  function fmt(n) {
+    if (!isFinite(n) || n === null) return '—';
+    return Math.round(n).toLocaleString('ko-KR') + '원';
+  }
+
+  function pct(n) {
+    return n.toFixed(1) + '%';
+  }
+
+  // ── 탭1 ─────────────────────────────────────────
+
+  function setStep1(n) {
+    state.t1.step = n;
+    [1, 2, 3].forEach(i => document.getElementById('t1-step' + i).classList.toggle('active', i === n));
+    // 가중 진입은 2차에서만 의미 있음
+    document.getElementById('t1-weighted-field').style.display = n === 2 ? '' : 'none';
+    if (n !== 2) setWeighted(false);
+    calcTab1();
+  }
+
+  function setWeighted(on) {
+    state.t1.weighted = on;
+    document.getElementById('t1-w0').classList.toggle('active', !on);
+    document.getElementById('t1-w1').classList.toggle('active', on);
+    calcTab1();
+  }
+
+  function calcTab1() {
+    const total = parseFloat(document.getElementById('t1-total').value);
+    const el = document.getElementById('t1-result');
+
+    if (!total || total <= 0) {
+      el.innerHTML = '<p class="empty">총 투자금을 입력하세요</p>';
+      return;
+    }
+
+    const RATIOS = [1 / 5, 3 / 5, 1 / 5]; // 1차, 2차, 3차
+    const { step, weighted } = state.t1;
+
+    const amounts = RATIOS.map(r => total * r);
+
+    let thisEntry;
+    if (weighted && step === 2) {
+      thisEntry = amounts[0] + amounts[1]; // 1차분 + 2차분
+    } else {
+      thisEntry = amounts[step - 1];
+    }
+
+    const rows = [1, 2, 3].map(i => {
+      const isCurrent = i === step;
+      const label = weighted && step === 2 && i === 2 ? `2차 <span style="font-size:12px;color:var(--accent)">(가중)</span>` : `${i}차`;
+      return `
+        <div class="plan-row">
+          <span class="step ${isCurrent ? 'current' : ''}">${label}</span>
+          <span class="plan-amount">${fmt(amounts[i - 1])}</span>
+          <span class="pct">${pct(RATIOS[i - 1] * 100)}</span>
+        </div>`;
+    }).join('');
+
+    el.innerHTML = `
+      <div class="result-main">
+        <div class="label">이번 진입금${weighted && step === 2 ? ' (가중)' : ''}</div>
+        <div class="amount">${fmt(thisEntry)}</div>
+      </div>
+      <p class="plan-title">차수 전체 계획</p>
+      ${rows}
+    `;
+  }
+
+  // ── 탭2 ─────────────────────────────────────────
+
+  function setSlot1Step(n) {
+    state.t2.slot1Step = n;
+    [1, 2, 3].forEach(i => document.getElementById('t2-s1-' + i).classList.toggle('active', i === n));
+    calcTab2();
+  }
+
+  function setSlot2Step(n) {
+    state.t2.slot2Step = n;
+    [1, 2, 3].forEach(i => document.getElementById('t2-s2-' + i).classList.toggle('active', i === n));
+    calcTab2();
+  }
+
+  function calcTab2() {
+    const total = parseFloat(document.getElementById('t2-total').value);
+    const holding = parseFloat(document.getElementById('t2-holding').value) || 0;
+    const el = document.getElementById('t2-result');
+
+    if (!total || total <= 0) {
+      el.innerHTML = '<p class="empty">총 투자금을 입력하세요</p>';
+      return;
+    }
+
+    const S1_RATIO = 2 / 3;
+    const S2_RATIO = 1 / 3;
+    const STEP_RATIOS = [1 / 5, 3 / 5, 1 / 5];
+
+    const slot1Target = total * S1_RATIO;
+    const slot2Target = total * S2_RATIO;
+
+    const adjust = slot1Target - holding;
+
+    const s2Step = state.t2.slot2Step;
+    const s2Entry = slot2Target * STEP_RATIOS[s2Step - 1];
+
+    const s2Amounts = STEP_RATIOS.map(r => slot2Target * r);
+
+    const adjustClass = adjust > 0 ? 'positive' : adjust < 0 ? 'negative' : 'zero';
+    const adjustLabel = adjust > 0 ? '추가 여지' : adjust < 0 ? '청산 필요' : '조정 없음';
+
+    const s2Rows = [1, 2, 3].map(i => `
+      <div class="plan-row">
+        <span class="step ${i === s2Step ? 'current' : ''}">${i}차</span>
+        <span class="plan-amount">${fmt(s2Amounts[i - 1])}</span>
+        <span class="pct">${pct(STEP_RATIOS[i - 1] * slot2Target / total * 100)}</span>
+      </div>`).join('');
+
+    el.innerHTML = `
+      <p class="section-title">슬롯 재배분 (2:1)</p>
+      <div class="result-main">
+        <div class="slot-row">
+          <span class="slot-label">1슬롯 목표</span>
+          <span class="slot-amount">${fmt(slot1Target)}</span>
+          <span class="slot-pct">${pct(S1_RATIO * 100)}</span>
+        </div>
+        <div class="slot-row">
+          <span class="slot-label">2슬롯 목표</span>
+          <span class="slot-amount">${fmt(slot2Target)}</span>
+          <span class="slot-pct">${pct(S2_RATIO * 100)}</span>
+        </div>
+      </div>
+
+      <p class="section-title">1슬롯 조정</p>
+      <div class="adjust-box">
+        <div class="adj-label">${adjustLabel}</div>
+        <div class="adj-amount ${adjustClass}">${fmt(Math.abs(adjust))}</div>
+      </div>
+
+      <p class="section-title">2슬롯 — 이번 진입금</p>
+      <div class="result-main">
+        <div class="label">${s2Step}차 진입</div>
+        <div class="amount">${fmt(s2Entry)}</div>
+      </div>
+
+      <p class="plan-title">2슬롯 전체 계획</p>
+      ${s2Rows}
+    `;
+  }
+
+  // PWA 서비스 워커 등록
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./service-worker.js');
+  }
+
+  // 초기 렌더
+  setStep1(1);
+  calcTab2();
+</script>
+</body>
+</html>
