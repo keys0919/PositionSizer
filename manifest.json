@@ -1,7 +1,7 @@
 {
-  "name": "비중 계산기",
-  "short_name": "비중",
-  "description": "1:2 차수 비중과 2:1·1:1 슬롯 배분을 지원하는 포지션 계산기",
+  "name": "Core 비중 계산기",
+  "short_name": "Core비중",
+  "description": "v8 Core Only 기준의 단일 Core 1차·2차·전량 EXIT 포지션 계산기",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",

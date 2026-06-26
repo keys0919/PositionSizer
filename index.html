@@ -6,113 +6,91 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#0d0d0d">
-  <title>비중 계산기</title>
+  <title>Core 비중 계산기</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:           #0d0d0d;
-      --surface:      #141414;
-      --surface-up:   #1c1c1e;
-      --border:       #242424;
-      --border-sub:   #1a1a1a;
-      --accent:       #c8981e;
-      --accent-dim:   #1a1100;
-      --accent-line:  #3a2a00;
-      --text-1:       #efefef;
-      --text-2:       #aaa;
-      --text-3:       #666;
-      --pos:          #3a9a6a;
-      --pos-dim:      #0d1f16;
-      --neg:          #c24a4a;
-      --neg-dim:      #1f0d0d;
+      --bg: #0d0d0d;
+      --surface: #141414;
+      --surface-up: #1c1c1e;
+      --border: #242424;
+      --border-sub: #1a1a1a;
+      --accent: #c8981e;
+      --accent-dim: #1a1100;
+      --accent-line: #3a2a00;
+      --text-1: #efefef;
+      --text-2: #aaa;
+      --text-3: #666;
+      --pos: #3a9a6a;
+      --pos-dim: #0d1f16;
+      --neg: #c24a4a;
+      --neg-dim: #1f0d0d;
     }
 
     html { -webkit-text-size-adjust: 100%; }
 
     body {
+      min-height: 100dvh;
+      padding: calc(env(safe-area-inset-top) + 24px) 20px calc(env(safe-area-inset-bottom) + 28px);
       background: var(--bg);
       color: var(--text-1);
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
       font-size: 16px;
       line-height: 1.4;
       -webkit-font-smoothing: antialiased;
-      min-height: 100dvh;
-      padding-bottom: calc(env(safe-area-inset-bottom) + 24px);
     }
 
-    /* ── 탭 네비게이션 ── */
-    .tab-nav {
-      display: flex;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      padding-top: env(safe-area-inset-top);
+    .app {
+      max-width: 520px;
+      margin: 0 auto;
     }
 
-    .tab-btn {
-      flex: 1;
-      padding: 15px 8px 13px;
-      background: none;
-      border: none;
-      border-bottom: 2px solid transparent;
+    header {
+      margin-bottom: 22px;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0;
+      line-height: 1.2;
+    }
+
+    .meta {
+      margin-top: 7px;
       color: var(--text-3);
-      font-family: inherit;
-      font-size: 14px;
-      font-weight: 500;
-      letter-spacing: 0.01em;
-      cursor: pointer;
-      transition: color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-                  border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      -webkit-tap-highlight-color: transparent;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
 
-    .tab-btn.active {
-      color: var(--accent);
-      border-bottom-color: var(--accent);
-    }
-
-    .tab-btn:active { opacity: 0.6; }
-
-    /* ── 탭 패널 ── */
-    .tab-panel {
-      display: none;
-      padding: 24px 20px 0;
-      animation: fadeIn 0.18s ease-out;
-    }
-
-    .tab-panel.active { display: block; }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ── 입력 필드 ── */
     .field { margin-bottom: 20px; }
 
-    .field label {
+    .field label,
+    .section-label,
+    .result-label,
+    .plan-label {
       display: block;
+      margin-bottom: 8px;
+      color: var(--text-2);
       font-size: 11px;
       font-weight: 600;
       letter-spacing: 0.07em;
       text-transform: uppercase;
-      color: var(--text-2);
-      margin-bottom: 8px;
     }
 
-    .field input[type="text"] {
+    input[type="text"] {
       width: 100%;
       padding: 13px 16px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 10px;
       color: var(--text-1);
-      font-family: inherit;
+      font: inherit;
       font-size: 20px;
       font-variant-numeric: tabular-nums;
       font-feature-settings: "tnum" 1;
@@ -122,622 +100,388 @@
       transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
 
-    .field input[type="text"]:focus {
+    input[type="text"]:focus {
       border-color: var(--accent-line);
       box-shadow: 0 0 0 3px rgba(200, 152, 30, 0.08);
     }
 
-    .field input[type="text"]::placeholder { color: var(--text-3); }
+    input[type="text"]::placeholder { color: var(--text-3); }
 
-    /* 단위 버튼 */
-    .unit-btns {
+    .unit-btns,
+    .btn-group {
       display: flex;
       gap: 8px;
       margin-top: 10px;
     }
 
-    .unit-btn {
-      padding: 10px 16px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: #bbb;
-      font-family: inherit;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .unit-btn:active {
-      transform: scale(0.94);
-      background: var(--accent-dim);
-      border-color: var(--accent-line);
-      color: var(--accent);
-      transition-duration: 0.08s;
-    }
-
-    /* ── 버튼 그룹 ── */
-    .btn-group {
-      display: flex;
-      gap: 7px;
-    }
-
-    .btn-group button,
-    .toggle-group button {
-      flex: 1;
-      padding: 12px 0;
-      background: var(--surface);
+    button {
+      min-height: 42px;
       border: 1px solid var(--border);
       border-radius: 10px;
+      background: var(--surface);
       color: #bbb;
-      font-family: inherit;
+      font: inherit;
       font-size: 14px;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
-      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.12s ease, background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
     }
 
-    .btn-group button:active,
-    .toggle-group button:active {
-      transform: scale(0.96);
-      transition-duration: 0.08s;
+    button:active { transform: scale(0.96); }
+
+    .unit-btn {
+      flex: 1;
+      padding: 0 12px;
+    }
+
+    .btn-group button {
+      flex: 1;
+      padding: 0 8px;
     }
 
     .btn-group button.active {
       background: var(--accent);
       border-color: var(--accent);
       color: #0d0d0d;
-      font-weight: 600;
     }
 
-    .toggle-group { display: flex; gap: 7px; }
-
-    .toggle-group button.active {
-      background: var(--accent-dim);
-      border-color: var(--accent-line);
-      color: var(--accent);
-    }
-
-    /* ── 구분선 ── */
     .divider {
       height: 1px;
-      background: var(--border);
       margin: 24px -20px;
+      background: var(--border);
     }
 
-    /* ── 진입금 포컬 블록 ── */
-    .entry-block {
+    .result {
       padding: 20px 0 18px;
       border-bottom: 1px solid var(--border-sub);
       margin-bottom: 20px;
     }
 
-    .entry-label {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-      color: var(--text-2);
-      margin-bottom: 6px;
-    }
-
-    .entry-amount {
+    .result-amount {
+      color: var(--accent);
       font-size: 36px;
       font-weight: 700;
-      letter-spacing: -0.02em;
-      color: var(--accent);
+      line-height: 1;
+      letter-spacing: 0;
       font-variant-numeric: tabular-nums;
       font-feature-settings: "tnum" 1;
-      line-height: 1;
     }
 
-    .entry-badge {
-      display: inline-block;
-      margin-left: 8px;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      color: var(--accent);
-      background: var(--accent-dim);
-      border: 1px solid var(--accent-line);
-      border-radius: 4px;
-      padding: 2px 6px;
-      vertical-align: middle;
-      position: relative;
-      top: -4px;
+    .result-amount.pos { color: var(--pos); }
+    .result-amount.neg { color: var(--neg); }
+    .result-amount.zero { color: var(--text-3); }
+
+    .summary {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
     }
 
-    /* ── 차수 계획 ── */
-    .plan-label {
-      font-size: 11px;
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-sub);
+    }
+
+    .row:last-child { border-bottom: none; }
+
+    .row-label {
+      width: 88px;
+      flex-shrink: 0;
+      color: var(--text-2);
+      font-size: 13px;
+    }
+
+    .row-value {
+      flex: 1;
+      text-align: right;
+      font-size: 17px;
       font-weight: 600;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
+    }
+
+    .row-pct {
+      width: 54px;
+      flex-shrink: 0;
       color: var(--text-3);
-      margin-bottom: 4px;
+      font-size: 12px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
     }
 
     .plan-row {
       display: flex;
       align-items: center;
+      gap: 12px;
       padding: 12px 0;
       border-bottom: 1px solid var(--border-sub);
       position: relative;
-      transition: background 0.15s;
     }
 
     .plan-row:last-child { border-bottom: none; }
 
     .plan-row.current::before {
-      content: '';
+      content: "";
       position: absolute;
       left: -20px;
-      top: 0; bottom: 0;
+      top: 0;
+      bottom: 0;
       width: 2px;
-      background: var(--accent);
       border-radius: 0 2px 2px 0;
+      background: var(--accent);
     }
 
-    .step-tag {
+    .stage-tag {
+      width: 54px;
+      flex-shrink: 0;
+      color: var(--text-3);
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 700;
       letter-spacing: 0.03em;
-      color: var(--text-3);
-      width: 34px;
-      flex-shrink: 0;
     }
 
-    .plan-row.current .step-tag { color: var(--accent); }
-
-    .plan-amount {
-      flex: 1;
-      font-size: 17px;
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
-      font-feature-settings: "tnum" 1;
-      color: var(--text-1);
-      text-align: right;
+    .plan-row.current .stage-tag,
+    .plan-row.current .row-value {
+      color: var(--accent);
     }
 
-    .plan-row.current .plan-amount { color: var(--accent); }
-
-    .plan-pct {
-      font-size: 12px;
-      color: var(--text-3);
-      width: 48px;
-      text-align: right;
-      flex-shrink: 0;
-      font-variant-numeric: tabular-nums;
-    }
-
-    /* ── 슬롯 재배분 ── */
-    .section-label {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-      color: var(--text-3);
-      margin: 22px 0 8px;
-    }
-
-    .slot-row {
-      display: flex;
-      align-items: center;
-      padding: 11px 0;
-      border-bottom: 1px solid var(--border-sub);
-    }
-
-    .slot-row:last-child { border-bottom: none; }
-
-    .slot-tag {
-      font-size: 13px;
-      color: var(--text-2);
-      flex-shrink: 0;
-      width: 80px;
-    }
-
-    .slot-amount {
-      flex: 1;
-      font-size: 17px;
-      font-weight: 600;
-      font-variant-numeric: tabular-nums;
-      font-feature-settings: "tnum" 1;
-      text-align: right;
-    }
-
-    .slot-pct {
-      font-size: 12px;
-      color: var(--text-3);
-      width: 48px;
-      text-align: right;
-      flex-shrink: 0;
-    }
-
-    /* ── 슬롯 재배분 컨테이너 ── */
-    .rebalance-block {
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 28px;
-    }
-
-    /* ── 1슬롯 조정 콜아웃 ── */
-    .adjust-callout {
-      padding: 16px 18px;
+    .callout {
+      margin-top: 20px;
+      padding: 15px 16px;
+      border-left: 3px solid var(--border);
       border-radius: 10px;
-      border-left: 3px solid transparent;
-      margin-bottom: 4px;
+      background: var(--surface);
     }
 
-    .adjust-callout.pos { background: var(--pos-dim); border-left-color: var(--pos); }
-    .adjust-callout.neg { background: var(--neg-dim); border-left-color: var(--neg); }
-    .adjust-callout.zero { background: var(--surface); border-left-color: var(--border); }
+    .callout.pos { background: var(--pos-dim); border-left-color: var(--pos); }
+    .callout.neg { background: var(--neg-dim); border-left-color: var(--neg); }
 
-    .adjust-callout-tag {
+    .callout-title {
+      color: var(--text-2);
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 700;
       letter-spacing: 0.07em;
       text-transform: uppercase;
-      color: var(--text-2);
-      margin-bottom: 6px;
+      margin-bottom: 5px;
     }
 
-    .adjust-callout-amt {
-      font-size: 26px;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-      font-feature-settings: "tnum" 1;
-      letter-spacing: -0.02em;
+    .callout-text {
+      color: var(--text-1);
+      font-size: 14px;
     }
 
-    .adjust-callout-amt.pos { color: var(--pos); }
-    .adjust-callout-amt.neg { color: var(--neg); }
-    .adjust-callout-amt.zero { color: var(--text-3); }
-
-    /* ── 결과 구분선 ── */
-    .result-divider {
-      height: 1px;
-      background: var(--border);
-      margin: 28px 0;
-    }
-
-    /* ── 탭2 서브 그룹 ── */
-    .sub-group {
-      border-left: 2px solid var(--border);
-      padding-left: 16px;
-      margin-left: 2px;
-      margin-bottom: 20px;
-    }
-
-    .sub-group-label {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-3);
-      margin-bottom: 16px;
-    }
-
-    .sub-group .field { margin-bottom: 16px; }
-    .sub-group .field:last-child { margin-bottom: 0; }
-
-    /* ── 빈 상태 ── */
     .empty {
       padding: 48px 0 16px;
       text-align: center;
-      font-size: 14px;
       color: var(--text-3);
+      font-size: 14px;
       letter-spacing: 0.02em;
     }
   </style>
 </head>
 <body>
-
-<nav class="tab-nav">
-  <button class="tab-btn active" onclick="switchTab('tab1')">1슬롯</button>
-  <button class="tab-btn" onclick="switchTab('tab2')">2슬롯</button>
-</nav>
-
-<!-- 탭1: 1슬롯 계산 -->
-<div id="tab1" class="tab-panel active">
-  <div class="field">
-    <label>총 투자금 (원)</label>
-    <input type="text" id="t1-total" inputmode="numeric" placeholder="0" oninput="onAmtInput(this, calcTab1)">
-    <div class="unit-btns">
-      <button class="unit-btn" onclick="applyUnit('t1-total', 1000, calcTab1)">000</button>
-      <button class="unit-btn" onclick="applyUnit('t1-total', 10000, calcTab1)">만</button>
-      <button class="unit-btn" onclick="applyUnit('t1-total', 100000000, calcTab1)">억</button>
-      <button class="unit-btn" onclick="clearAmt('t1-total', calcTab1)">C</button>
-    </div>
-  </div>
-
-  <div class="field">
-    <label>현재 차수</label>
-    <div class="btn-group">
-      <button id="t1-step1" class="active" onclick="setStep1(1)">1차</button>
-      <button id="t1-step2" onclick="setStep1(2)">2차</button>
-    </div>
-  </div>
-
-  <div class="field" id="t1-weighted-field" style="display:none">
-    <label>가중 진입</label>
-    <div class="toggle-group">
-      <button id="t1-w0" class="active" onclick="setWeighted(false)">없음</button>
-      <button id="t1-w1" onclick="setWeighted(true)">있음 (1차+2차)</button>
-    </div>
-  </div>
-
-  <div class="divider"></div>
-  <div id="t1-result"></div>
-</div>
-
-<!-- 탭2: 2슬롯 전환 계산 -->
-<div id="tab2" class="tab-panel">
-  <div class="field">
-    <label>총 투자금 (원)</label>
-    <input type="text" id="t2-total" inputmode="numeric" placeholder="0" oninput="onAmtInput(this, calcTab2)">
-    <div class="unit-btns">
-      <button class="unit-btn" onclick="applyUnit('t2-total', 1000, calcTab2)">000</button>
-      <button class="unit-btn" onclick="applyUnit('t2-total', 10000, calcTab2)">만</button>
-      <button class="unit-btn" onclick="applyUnit('t2-total', 100000000, calcTab2)">억</button>
-      <button class="unit-btn" onclick="clearAmt('t2-total', calcTab2)">C</button>
-    </div>
-  </div>
-
-  <div class="field">
-    <label>슬롯 배분</label>
-    <div class="btn-group">
-      <button id="t2-ratio-21" class="active" onclick="setSlotRatio('2:1')">2 : 1</button>
-      <button id="t2-ratio-11" onclick="setSlotRatio('1:1')">1 : 1</button>
-    </div>
-  </div>
-
-  <div class="sub-group">
-    <div class="sub-group-label">현재 1슬롯</div>
+  <main class="app">
+    <header>
+      <h1>Core 비중 계산기</h1>
+      <div class="meta">v8-core · 단일 Core</div>
+    </header>
 
     <div class="field">
-      <label>보유금 (원)</label>
-      <input type="text" id="t2-holding" inputmode="numeric" placeholder="0" oninput="onAmtInput(this, calcTab2)">
+      <label>총 투자금</label>
+      <input type="text" id="total" inputmode="numeric" placeholder="0" oninput="onAmtInput(this, calculate)">
       <div class="unit-btns">
-        <button class="unit-btn" onclick="applyUnit('t2-holding', 1000, calcTab2)">000</button>
-        <button class="unit-btn" onclick="applyUnit('t2-holding', 10000, calcTab2)">만</button>
-        <button class="unit-btn" onclick="applyUnit('t2-holding', 100000000, calcTab2)">억</button>
-        <button class="unit-btn" onclick="clearAmt('t2-holding', calcTab2)">C</button>
+        <button class="unit-btn" onclick="applyUnit('total', 1000, calculate)">000</button>
+        <button class="unit-btn" onclick="applyUnit('total', 10000, calculate)">만</button>
+        <button class="unit-btn" onclick="applyUnit('total', 100000000, calculate)">억</button>
+        <button class="unit-btn" onclick="clearAmt('total', calculate)">C</button>
       </div>
     </div>
 
     <div class="field">
-      <label>현재 차수</label>
+      <label>현재 Core 보유금</label>
+      <input type="text" id="holding" inputmode="numeric" placeholder="0" oninput="onAmtInput(this, calculate)">
+      <div class="unit-btns">
+        <button class="unit-btn" onclick="applyUnit('holding', 1000, calculate)">000</button>
+        <button class="unit-btn" onclick="applyUnit('holding', 10000, calculate)">만</button>
+        <button class="unit-btn" onclick="applyUnit('holding', 100000000, calculate)">억</button>
+        <button class="unit-btn" onclick="clearAmt('holding', calculate)">C</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>목표 단계</label>
       <div class="btn-group">
-        <button id="t2-s1-1" class="active" onclick="setSlot1Step(1)">1차</button>
-        <button id="t2-s1-2" onclick="setSlot1Step(2)">2차</button>
+        <button id="stage1" class="active" onclick="setStage(1)">1차</button>
+        <button id="stage2" onclick="setStage(2)">2차 완료</button>
+        <button id="stage0" onclick="setStage(0)">전량 EXIT</button>
       </div>
     </div>
-  </div>
 
-  <div class="field">
-    <label>2슬롯 진입 차수</label>
-    <div class="btn-group">
-      <button id="t2-s2-1" class="active" onclick="setSlot2Step(1)">1차</button>
-      <button id="t2-s2-2" onclick="setSlot2Step(2)">2차</button>
-    </div>
-  </div>
+    <div class="divider"></div>
+    <div id="result"></div>
+  </main>
 
-  <div class="divider"></div>
-  <div id="t2-result"></div>
-</div>
+  <script>
+    const state = { stage: 1 };
 
-<script>
-  const state = {
-    t1: { step: 1, weighted: false },
-    t2: { slotRatio: '2:1', slot1Step: 1, slot2Step: 1 }
-  };
+    const TARGETS = {
+      0: { label: '전량 EXIT', pct: 0 },
+      1: { label: 'Core 1차', pct: 1 / 3 },
+      2: { label: 'Core 2차 완료', pct: 1 }
+    };
 
-  function switchTab(id) {
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    document.querySelectorAll('.tab-btn')[id === 'tab1' ? 0 : 1].classList.add('active');
-  }
-
-  // ── 입력 유틸 ──────────────────────────────────
-
-  function rawVal(id) {
-    const v = document.getElementById(id).value.replace(/,/g, '');
-    return parseFloat(v) || 0;
-  }
-
-  function onAmtInput(el, recalc) {
-    const prevDigits = (el.dataset.fmt || '').replace(/[^0-9]/g, '');
-    const prevLen   = (el.dataset.fmt || '').length;
-    const curDigits = el.value.replace(/[^0-9]/g, '');
-    const curLen    = el.value.length;
-
-    // 콤마에 backspace가 걸린 경우: 길이는 줄었지만 digit는 그대로 → 마지막 digit 추가 제거
-    let digits = curDigits;
-    if (digits === prevDigits && curLen < prevLen) {
-      digits = digits.slice(0, -1);
+    function rawVal(id) {
+      const v = document.getElementById(id).value.replace(/,/g, '');
+      return parseFloat(v) || 0;
     }
 
-    const formatted = digits === '' ? '' : parseInt(digits, 10).toLocaleString('ko-KR');
-    el.value = formatted;
-    el.dataset.fmt = formatted;
-    recalc();
-  }
+    function onAmtInput(el, recalc) {
+      const prevDigits = (el.dataset.fmt || '').replace(/[^0-9]/g, '');
+      const prevLen = (el.dataset.fmt || '').length;
+      const curDigits = el.value.replace(/[^0-9]/g, '');
+      const curLen = el.value.length;
 
-  function applyUnit(id, unit, recalc) {
-    const el = document.getElementById(id);
-    const n = rawVal(id);
-    if (n <= 0) return;
-    const formatted = (n * unit).toLocaleString('ko-KR');
-    el.value = formatted;
-    el.dataset.fmt = formatted;
-    recalc();
-  }
+      let digits = curDigits;
+      if (digits === prevDigits && curLen < prevLen) {
+        digits = digits.slice(0, -1);
+      }
 
-  function clearAmt(id, recalc) {
-    const el = document.getElementById(id);
-    el.value = '';
-    el.dataset.fmt = '';
-    recalc();
-  }
-
-  function fmt(n) {
-    if (!isFinite(n) || n === null) return '—';
-    return Math.round(n).toLocaleString('ko-KR') + '원';
-  }
-
-  function pct(n) { return n.toFixed(1) + '%'; }
-
-  // ── 탭1 ──────────────────────────────────────────
-
-  function setStep1(n) {
-    state.t1.step = n;
-    [1, 2].forEach(i => document.getElementById('t1-step' + i).classList.toggle('active', i === n));
-    document.getElementById('t1-weighted-field').style.display = n === 2 ? '' : 'none';
-    if (n !== 2) setWeighted(false);
-    calcTab1();
-  }
-
-  function setWeighted(on) {
-    state.t1.weighted = on;
-    document.getElementById('t1-w0').classList.toggle('active', !on);
-    document.getElementById('t1-w1').classList.toggle('active', on);
-    calcTab1();
-  }
-
-  function calcTab1() {
-    const total = rawVal('t1-total');
-    const el = document.getElementById('t1-result');
-
-    if (!total || total <= 0) {
-      el.innerHTML = '<p class="empty">총 투자금을 입력하세요</p>';
-      return;
+      const formatted = digits === '' ? '' : parseInt(digits, 10).toLocaleString('ko-KR');
+      el.value = formatted;
+      el.dataset.fmt = formatted;
+      recalc();
     }
 
-    const RATIOS = [1 / 3, 2 / 3];
-    const { step, weighted } = state.t1;
-    const amounts = RATIOS.map(r => total * r);
-
-    const thisEntry = (weighted && step === 2) ? amounts[0] + amounts[1] : amounts[step - 1];
-    const badge = (weighted && step === 2) ? '<span class="entry-badge">가중</span>' : '';
-
-    const rows = [1, 2].map(i => {
-      const cur = i === step;
-      const tag = (weighted && step === 2 && i === 2) ? '2차*' : `${i}차`;
-      return `<div class="plan-row ${cur ? 'current' : ''}">
-        <span class="step-tag">${tag}</span>
-        <span class="plan-amount">${fmt(amounts[i - 1])}</span>
-        <span class="plan-pct">${pct(RATIOS[i - 1] * 100)}</span>
-      </div>`;
-    }).join('');
-
-    el.innerHTML = `
-      <div class="entry-block">
-        <div class="entry-label">이번 진입금</div>
-        <div class="entry-amount">${fmt(thisEntry)}${badge}</div>
-      </div>
-      <div class="plan-label">차수 전체 계획</div>
-      ${rows}
-    `;
-  }
-
-  // ── 탭2 ──────────────────────────────────────────
-
-  function setSlotRatio(ratio) {
-    state.t2.slotRatio = ratio;
-    document.getElementById('t2-ratio-21').classList.toggle('active', ratio === '2:1');
-    document.getElementById('t2-ratio-11').classList.toggle('active', ratio === '1:1');
-    calcTab2();
-  }
-
-  function setSlot1Step(n) {
-    state.t2.slot1Step = n;
-    [1, 2].forEach(i => document.getElementById('t2-s1-' + i).classList.toggle('active', i === n));
-    calcTab2();
-  }
-
-  function setSlot2Step(n) {
-    state.t2.slot2Step = n;
-    [1, 2].forEach(i => document.getElementById('t2-s2-' + i).classList.toggle('active', i === n));
-    calcTab2();
-  }
-
-  function calcTab2() {
-    const total = rawVal('t2-total');
-    const holding = rawVal('t2-holding');
-    const el = document.getElementById('t2-result');
-
-    if (!total || total <= 0) {
-      el.innerHTML = '<p class="empty">총 투자금을 입력하세요</p>';
-      return;
+    function applyUnit(id, unit, recalc) {
+      const el = document.getElementById(id);
+      const n = rawVal(id);
+      if (n <= 0) return;
+      const formatted = (n * unit).toLocaleString('ko-KR');
+      el.value = formatted;
+      el.dataset.fmt = formatted;
+      recalc();
     }
 
-    const isEqual = state.t2.slotRatio === '1:1';
-    const S1 = isEqual ? 1 / 2 : 2 / 3;
-    const S2 = isEqual ? 1 / 2 : 1 / 3;
-    const ratioLabel = state.t2.slotRatio;
-    const STEPS = [1 / 3, 2 / 3];
+    function clearAmt(id, recalc) {
+      const el = document.getElementById(id);
+      el.value = '';
+      el.dataset.fmt = '';
+      recalc();
+    }
 
-    const slot1Target = total * S1;
-    const slot2Target = total * S2;
-    const adjust = slot1Target - holding;
+    function fmt(n) {
+      if (!isFinite(n) || n === null) return '—';
+      return Math.round(n).toLocaleString('ko-KR') + '원';
+    }
 
-    const s2Step = state.t2.slot2Step;
-    const s2Entry = slot2Target * STEPS[s2Step - 1];
-    const s2Amounts = STEPS.map(r => slot2Target * r);
+    function pct(n) {
+      return n.toFixed(1) + '%';
+    }
 
-    const adjClass = adjust > 0 ? 'pos' : adjust < 0 ? 'neg' : 'zero';
-    const adjTag = adjust > 0 ? '추가 여지' : adjust < 0 ? '청산 필요' : '조정 없음';
+    function setStage(stage) {
+      state.stage = stage;
+      [0, 1, 2].forEach(s => {
+        document.getElementById('stage' + s).classList.toggle('active', s === stage);
+      });
+      calculate();
+    }
 
-    const s2Rows = [1, 2].map(i => `
-      <div class="plan-row ${i === s2Step ? 'current' : ''}">
-        <span class="step-tag">${i}차</span>
-        <span class="plan-amount">${fmt(s2Amounts[i - 1])}</span>
-        <span class="plan-pct">${pct(STEPS[i - 1] * S2 * 100)}</span>
-      </div>`).join('');
+    function signedAmount(n) {
+      if (n > 0) return '+' + fmt(n);
+      if (n < 0) return '−' + fmt(Math.abs(n));
+      return fmt(0);
+    }
 
-    el.innerHTML = `
-      <div class="section-label">슬롯 재배분 ${ratioLabel}</div>
-      <div class="rebalance-block">
-        <div class="slot-row">
-          <span class="slot-tag">1슬롯 목표</span>
-          <span class="slot-amount">${fmt(slot1Target)}</span>
-          <span class="slot-pct">${pct(S1 * 100)}</span>
+    function calculate() {
+      const total = rawVal('total');
+      const holding = rawVal('holding');
+      const el = document.getElementById('result');
+
+      if (!total || total <= 0) {
+        el.innerHTML = '<p class="empty">총 투자금을 입력하세요</p>';
+        return;
+      }
+
+      const target = TARGETS[state.stage];
+      const stage1 = total / 3;
+      const stage2Add = total * 2 / 3;
+      const full = total;
+      const targetAmount = total * target.pct;
+      const delta = targetAmount - holding;
+      const currentPct = total > 0 ? holding / total * 100 : 0;
+      const targetPct = target.pct * 100;
+      const cashAfterTarget = total - targetAmount;
+
+      const deltaClass = delta > 0 ? 'pos' : delta < 0 ? 'neg' : 'zero';
+      const deltaLabel = delta > 0 ? '추가 필요금' : delta < 0 ? '축소 필요금' : '조정 없음';
+      const calloutClass = state.stage === 0 ? 'neg' : delta > 0 ? 'pos' : delta < 0 ? 'neg' : '';
+      const calloutText = state.stage === 0
+        ? 'Core 상실 또는 Exit Signal 확정 시 보유금 전액 종료'
+        : state.stage === 1
+          ? 'Core 1차 목표는 포트폴리오의 1/3'
+          : 'Core 2차 완료 목표는 포트폴리오 100%';
+
+      const rows = [
+        { active: state.stage === 1, label: '1차', amount: stage1, pct: 100 / 3 },
+        { active: false, label: '2차 추가', amount: stage2Add, pct: 200 / 3 },
+        { active: state.stage === 2, label: '2차 완료', amount: full, pct: 100 }
+      ].map(row => `
+        <div class="plan-row ${row.active ? 'current' : ''}">
+          <span class="stage-tag">${row.label}</span>
+          <span class="row-value">${fmt(row.amount)}</span>
+          <span class="row-pct">${pct(row.pct)}</span>
         </div>
-        <div class="slot-row">
-          <span class="slot-tag">2슬롯 목표</span>
-          <span class="slot-amount">${fmt(slot2Target)}</span>
-          <span class="slot-pct">${pct(S2 * 100)}</span>
+      `).join('');
+
+      el.innerHTML = `
+        <div class="result">
+          <span class="result-label">${deltaLabel}</span>
+          <div class="result-amount ${deltaClass}">${signedAmount(delta)}</div>
         </div>
-      </div>
 
-      <div class="section-label">1슬롯 조정</div>
-      <div class="adjust-callout ${adjClass}">
-        <div class="adjust-callout-tag">${adjTag}</div>
-        <div class="adjust-callout-amt ${adjClass}">${adjust > 0 ? '+' : adjust < 0 ? '−' : ''}${fmt(Math.abs(adjust))}</div>
-      </div>
+        <div class="section-label">목표</div>
+        <div class="summary">
+          <div class="row">
+            <span class="row-label">단계</span>
+            <span class="row-value">${target.label}</span>
+            <span class="row-pct">${pct(targetPct)}</span>
+          </div>
+          <div class="row">
+            <span class="row-label">목표금</span>
+            <span class="row-value">${fmt(targetAmount)}</span>
+            <span class="row-pct">${pct(targetPct)}</span>
+          </div>
+          <div class="row">
+            <span class="row-label">현재</span>
+            <span class="row-value">${fmt(holding)}</span>
+            <span class="row-pct">${pct(currentPct)}</span>
+          </div>
+          <div class="row">
+            <span class="row-label">현금</span>
+            <span class="row-value">${fmt(cashAfterTarget)}</span>
+            <span class="row-pct">${pct(100 - targetPct)}</span>
+          </div>
+        </div>
 
-      <div class="result-divider"></div>
+        <div class="plan-label">Core 계획</div>
+        ${rows}
 
-      <div class="entry-block">
-        <div class="entry-label">2슬롯 — ${s2Step}차 진입금</div>
-        <div class="entry-amount">${fmt(s2Entry)}</div>
-      </div>
+        <div class="callout ${calloutClass}">
+          <div class="callout-title">v8-core</div>
+          <div class="callout-text">${calloutText}</div>
+        </div>
+      `;
+    }
 
-      <div class="plan-label">2슬롯 전체 계획</div>
-      ${s2Rows}
-    `;
-  }
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js');
+    }
 
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./service-worker.js');
-  }
-
-  setStep1(1);
-  calcTab2();
-</script>
+    calculate();
+  </script>
 </body>
 </html>
