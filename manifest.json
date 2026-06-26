@@ -1,7 +1,7 @@
 {
   "name": "비중 계산기",
   "short_name": "비중",
-  "description": "슬롯/차수 기반 포지션 비중 계산기",
+  "description": "1차 1/3·2차 2/3 기준 슬롯 포지션 비중 계산기",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",

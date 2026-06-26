@@ -458,7 +458,6 @@
     <div class="btn-group">
       <button id="t1-step1" class="active" onclick="setStep1(1)">1차</button>
       <button id="t1-step2" onclick="setStep1(2)">2차</button>
-      <button id="t1-step3" onclick="setStep1(3)">3차</button>
     </div>
   </div>
 
@@ -506,7 +505,6 @@
       <div class="btn-group">
         <button id="t2-s1-1" class="active" onclick="setSlot1Step(1)">1차</button>
         <button id="t2-s1-2" onclick="setSlot1Step(2)">2차</button>
-        <button id="t2-s1-3" onclick="setSlot1Step(3)">3차</button>
       </div>
     </div>
   </div>
@@ -516,7 +514,6 @@
     <div class="btn-group">
       <button id="t2-s2-1" class="active" onclick="setSlot2Step(1)">1차</button>
       <button id="t2-s2-2" onclick="setSlot2Step(2)">2차</button>
-      <button id="t2-s2-3" onclick="setSlot2Step(3)">3차</button>
     </div>
   </div>
 
@@ -590,7 +587,7 @@
 
   function setStep1(n) {
     state.t1.step = n;
-    [1, 2, 3].forEach(i => document.getElementById('t1-step' + i).classList.toggle('active', i === n));
+    [1, 2].forEach(i => document.getElementById('t1-step' + i).classList.toggle('active', i === n));
     document.getElementById('t1-weighted-field').style.display = n === 2 ? '' : 'none';
     if (n !== 2) setWeighted(false);
     calcTab1();
@@ -612,14 +609,14 @@
       return;
     }
 
-    const RATIOS = [1 / 5, 3 / 5, 1 / 5];
+    const RATIOS = [1 / 3, 2 / 3];
     const { step, weighted } = state.t1;
     const amounts = RATIOS.map(r => total * r);
 
     const thisEntry = (weighted && step === 2) ? amounts[0] + amounts[1] : amounts[step - 1];
     const badge = (weighted && step === 2) ? '<span class="entry-badge">가중</span>' : '';
 
-    const rows = [1, 2, 3].map(i => {
+    const rows = [1, 2].map(i => {
       const cur = i === step;
       const tag = (weighted && step === 2 && i === 2) ? '2차*' : `${i}차`;
       return `<div class="plan-row ${cur ? 'current' : ''}">
@@ -643,13 +640,13 @@
 
   function setSlot1Step(n) {
     state.t2.slot1Step = n;
-    [1, 2, 3].forEach(i => document.getElementById('t2-s1-' + i).classList.toggle('active', i === n));
+    [1, 2].forEach(i => document.getElementById('t2-s1-' + i).classList.toggle('active', i === n));
     calcTab2();
   }
 
   function setSlot2Step(n) {
     state.t2.slot2Step = n;
-    [1, 2, 3].forEach(i => document.getElementById('t2-s2-' + i).classList.toggle('active', i === n));
+    [1, 2].forEach(i => document.getElementById('t2-s2-' + i).classList.toggle('active', i === n));
     calcTab2();
   }
 
@@ -664,7 +661,7 @@
     }
 
     const S1 = 2 / 3, S2 = 1 / 3;
-    const STEPS = [1 / 5, 3 / 5, 1 / 5];
+    const STEPS = [1 / 3, 2 / 3];
 
     const slot1Target = total * S1;
     const slot2Target = total * S2;
@@ -677,7 +674,7 @@
     const adjClass = adjust > 0 ? 'pos' : adjust < 0 ? 'neg' : 'zero';
     const adjTag = adjust > 0 ? '추가 여지' : adjust < 0 ? '청산 필요' : '조정 없음';
 
-    const s2Rows = [1, 2, 3].map(i => `
+    const s2Rows = [1, 2].map(i => `
       <div class="plan-row ${i === s2Step ? 'current' : ''}">
         <span class="step-tag">${i}차</span>
         <span class="plan-amount">${fmt(s2Amounts[i - 1])}</span>
