@@ -486,6 +486,14 @@
     </div>
   </div>
 
+  <div class="field">
+    <label>슬롯 배분</label>
+    <div class="btn-group">
+      <button id="t2-ratio-21" class="active" onclick="setSlotRatio('2:1')">2 : 1</button>
+      <button id="t2-ratio-11" onclick="setSlotRatio('1:1')">1 : 1</button>
+    </div>
+  </div>
+
   <div class="sub-group">
     <div class="sub-group-label">현재 1슬롯</div>
 
@@ -524,7 +532,7 @@
 <script>
   const state = {
     t1: { step: 1, weighted: false },
-    t2: { slot1Step: 1, slot2Step: 1 }
+    t2: { slotRatio: '2:1', slot1Step: 1, slot2Step: 1 }
   };
 
   function switchTab(id) {
@@ -638,6 +646,13 @@
 
   // ── 탭2 ──────────────────────────────────────────
 
+  function setSlotRatio(ratio) {
+    state.t2.slotRatio = ratio;
+    document.getElementById('t2-ratio-21').classList.toggle('active', ratio === '2:1');
+    document.getElementById('t2-ratio-11').classList.toggle('active', ratio === '1:1');
+    calcTab2();
+  }
+
   function setSlot1Step(n) {
     state.t2.slot1Step = n;
     [1, 2].forEach(i => document.getElementById('t2-s1-' + i).classList.toggle('active', i === n));
@@ -660,7 +675,10 @@
       return;
     }
 
-    const S1 = 2 / 3, S2 = 1 / 3;
+    const isEqual = state.t2.slotRatio === '1:1';
+    const S1 = isEqual ? 1 / 2 : 2 / 3;
+    const S2 = isEqual ? 1 / 2 : 1 / 3;
+    const ratioLabel = state.t2.slotRatio;
     const STEPS = [1 / 3, 2 / 3];
 
     const slot1Target = total * S1;
@@ -682,7 +700,7 @@
       </div>`).join('');
 
     el.innerHTML = `
-      <div class="section-label">슬롯 재배분 2:1</div>
+      <div class="section-label">슬롯 재배분 ${ratioLabel}</div>
       <div class="rebalance-block">
         <div class="slot-row">
           <span class="slot-tag">1슬롯 목표</span>
