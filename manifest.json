@@ -1,7 +1,7 @@
 {
-  "name": "Core 비중 계산기",
-  "short_name": "Core비중",
-  "description": "v8 Core Only 기준의 단일 Core 1차·2차·전량 EXIT 포지션 계산기",
+  "name": "비중 계산기",
+  "short_name": "비중",
+  "description": "v10 staged 기준 — 진입유형(A형/B형)·단계(1차/2차/EXIT)별 목표 비중과 추가·축소 리밸런싱 금액 계산기 (슬롯풀 50%)",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",

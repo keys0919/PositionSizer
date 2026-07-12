@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#0d0d0d">
-  <title>Core 비중 계산기</title>
+  <title>비중 계산기</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <style>
@@ -286,8 +286,8 @@
 <body>
   <main class="app">
     <header>
-      <h1>Core 비중 계산기</h1>
-      <div class="meta">v8-core · 단일 Core</div>
+      <h1>비중 계산기</h1>
+      <div class="meta">v10 staged · 슬롯풀 50%</div>
     </header>
 
     <div class="field">
@@ -302,7 +302,7 @@
     </div>
 
     <div class="field">
-      <label>현재 Core 보유금</label>
+      <label>현재 보유금</label>
       <input type="text" id="holding" inputmode="numeric" placeholder="0" oninput="onAmtInput(this, calculate)">
       <div class="unit-btns">
         <button class="unit-btn" onclick="applyUnit('holding', 1000, calculate)">000</button>
@@ -313,10 +313,19 @@
     </div>
 
     <div class="field">
-      <label>목표 단계</label>
+      <label>진입 유형</label>
       <div class="btn-group">
-        <button id="stage1" class="active" onclick="setStage(1)">1차</button>
-        <button id="stage2" onclick="setStage(2)">2차 추가</button>
+        <button id="typeA" class="active" onclick="setType('A')">A형 초입</button>
+        <button id="typeB" onclick="setType('B')">B형 조정후반등</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>단계</label>
+      <div class="btn-group">
+        <button id="stage1" class="active" onclick="setStage('1')">1차</button>
+        <button id="stage2" onclick="setStage('2')">2차 완료</button>
+        <button id="stageExit" onclick="setStage('exit')">EXIT</button>
       </div>
     </div>
 
@@ -325,12 +334,23 @@
   </main>
 
   <script>
-    const state = { stage: 1 };
+    const state = { type: 'A', stage: '1' };
 
-    const TARGETS = {
-      1: { label: 'Core 1차', pct: 1 / 3 },
-      2: { label: 'Core 2차 추가', pct: 1 }
-    };
+    const SLOT_FULL = 0.5;                                  // 슬롯풀 = 포트 50% (2슬롯 조건부)
+    const STAGE_RATIO = { A1: 0.20, B1: 0.70, S2: 1.00 };  // 슬롯풀 대비 staged 20/70/100
+
+    // 진입 상황 → 포트 목표비중 (슬롯풀 50% × staged)
+    function targetPct() {
+      if (state.stage === 'exit') return 0;
+      if (state.stage === '2') return SLOT_FULL * STAGE_RATIO.S2;                 // 0.50
+      return SLOT_FULL * (state.type === 'A' ? STAGE_RATIO.A1 : STAGE_RATIO.B1);  // A:0.10 B:0.35
+    }
+
+    function situationLabel() {
+      if (state.stage === 'exit') return '전량 EXIT';
+      if (state.stage === '2') return '2차 완료';
+      return state.type === 'A' ? 'A형 초입 · 1차' : 'B형 조정후반등 · 1차';
+    }
 
     function rawVal(id) {
       const v = document.getElementById(id).value.replace(/,/g, '');
@@ -380,11 +400,22 @@
       return n.toFixed(1) + '%';
     }
 
+    function setType(type) {
+      state.type = type;
+      document.getElementById('typeA').classList.toggle('active', type === 'A');
+      document.getElementById('typeB').classList.toggle('active', type === 'B');
+      calculate();
+    }
+
     function setStage(stage) {
       state.stage = stage;
-      [1, 2].forEach(s => {
-        document.getElementById('stage' + s).classList.toggle('active', s === stage);
-      });
+      document.getElementById('stage1').classList.toggle('active', stage === '1');
+      document.getElementById('stage2').classList.toggle('active', stage === '2');
+      document.getElementById('stageExit').classList.toggle('active', stage === 'exit');
+      // 2차·EXIT는 진입유형과 무관 → 유형 버튼 dim
+      const typeDim = (stage === '2' || stage === 'exit');
+      document.getElementById('typeA').style.opacity = typeDim ? 0.4 : 1;
+      document.getElementById('typeB').style.opacity = typeDim ? 0.4 : 1;
       calculate();
     }
 
@@ -404,29 +435,34 @@
         return;
       }
 
-      const target = TARGETS[state.stage];
-      const stage1 = total / 3;
-      const full = total;
-      const targetAmount = total * target.pct;
+      const tPct = targetPct();                       // 0 ~ 0.5
+      const targetAmount = total * tPct;
       const delta = targetAmount - holding;
-      const currentPct = total > 0 ? holding / total * 100 : 0;
-      const targetPct = target.pct * 100;
-      const cashAfterTarget = total - targetAmount;
+      const currentPct = holding / total * 100;
+      const cashAfter = total - targetAmount;
+      const slotCap = total * SLOT_FULL;
 
       const deltaClass = delta > 0 ? 'pos' : delta < 0 ? 'neg' : 'zero';
       const deltaLabel = delta > 0 ? '추가 필요금' : delta < 0 ? '축소 필요금' : '조정 없음';
       const calloutClass = delta > 0 ? 'pos' : delta < 0 ? 'neg' : '';
-      const calloutText = state.stage === 1
-        ? 'Core 1차 목표는 포트폴리오의 1/3'
-        : 'Core 2차 추가 목표는 포트폴리오 100% (추가분 2/3)';
 
+      const calloutMap = {
+        A1: 'A형 초입 1차 — 슬롯풀(50%)의 20% = 포트 10%',
+        B1: 'B형 조정후반등 1차 — 슬롯풀(50%)의 70% = 포트 35%',
+        S2: '2차 재확인 완료 — 슬롯풀 100% = 포트 50% (단일 슬롯 상한)',
+        EX: '전량 EXIT — 목표 0%, 보유 전량 축소'
+      };
+      const ckey = state.stage === 'exit' ? 'EX' : state.stage === '2' ? 'S2' : (state.type === 'A' ? 'A1' : 'B1');
+
+      // staged 사다리 (선택 유형 기준): 1차 → 2차 완료
+      const first = SLOT_FULL * (state.type === 'A' ? STAGE_RATIO.A1 : STAGE_RATIO.B1);
       const rows = [
-        { active: state.stage === 1, label: '1차', amount: stage1, pct: 100 / 3 },
-        { active: state.stage === 2, label: '2차 완료', amount: full, pct: 100 }
+        { key: '1', label: state.type === 'A' ? '1차 초입' : '1차 반등', pct: first * 100 },
+        { key: '2', label: '2차 완료', pct: SLOT_FULL * STAGE_RATIO.S2 * 100 }
       ].map(row => `
-        <div class="plan-row ${row.active ? 'current' : ''}">
+        <div class="plan-row ${state.stage === row.key ? 'current' : ''}">
           <span class="stage-tag">${row.label}</span>
-          <span class="row-value">${fmt(row.amount)}</span>
+          <span class="row-value">${fmt(total * row.pct / 100)}</span>
           <span class="row-pct">${pct(row.pct)}</span>
         </div>
       `).join('');
@@ -437,36 +473,36 @@
           <div class="result-amount ${deltaClass}">${signedAmount(delta)}</div>
         </div>
 
-        <div class="section-label">목표</div>
+        <div class="section-label">목표 · ${situationLabel()}</div>
         <div class="summary">
-          <div class="row">
-            <span class="row-label">단계</span>
-            <span class="row-value">${target.label}</span>
-            <span class="row-pct">${pct(targetPct)}</span>
-          </div>
           <div class="row">
             <span class="row-label">목표금</span>
             <span class="row-value">${fmt(targetAmount)}</span>
-            <span class="row-pct">${pct(targetPct)}</span>
+            <span class="row-pct">${pct(tPct * 100)}</span>
           </div>
           <div class="row">
-            <span class="row-label">현재</span>
+            <span class="row-label">현재 보유</span>
             <span class="row-value">${fmt(holding)}</span>
             <span class="row-pct">${pct(currentPct)}</span>
           </div>
           <div class="row">
             <span class="row-label">현금</span>
-            <span class="row-value">${fmt(cashAfterTarget)}</span>
-            <span class="row-pct">${pct(100 - targetPct)}</span>
+            <span class="row-value">${fmt(cashAfter)}</span>
+            <span class="row-pct">${pct(100 - tPct * 100)}</span>
+          </div>
+          <div class="row">
+            <span class="row-label">슬롯풀 상한</span>
+            <span class="row-value">${fmt(slotCap)}</span>
+            <span class="row-pct">${pct(SLOT_FULL * 100)}</span>
           </div>
         </div>
 
-        <div class="plan-label">Core 계획</div>
+        <div class="plan-label">Staged 계획 (슬롯풀 50%)</div>
         ${rows}
 
         <div class="callout ${calloutClass}">
-          <div class="callout-title">v8-core</div>
-          <div class="callout-text">${calloutText}</div>
+          <div class="callout-title">v10 staged</div>
+          <div class="callout-text">${calloutMap[ckey]}</div>
         </div>
       `;
     }
