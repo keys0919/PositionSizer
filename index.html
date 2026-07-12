@@ -287,7 +287,7 @@
   <main class="app">
     <header>
       <h1>비중 계산기</h1>
-      <div class="meta">v10 staged · 슬롯풀 50%</div>
+      <div class="meta">슬롯당 최대 50% · 초입 10 / 눌림 35 / 2차 50</div>
     </header>
 
     <div class="field">
@@ -302,30 +302,64 @@
     </div>
 
     <div class="field">
-      <label>현재 보유금</label>
-      <input type="text" id="holding" inputmode="numeric" placeholder="0" oninput="onAmtInput(this, calculate)">
+      <label>슬롯 수</label>
+      <div class="btn-group">
+        <button id="slots1" class="active" onclick="setSlots(1)">1슬롯</button>
+        <button id="slots2" onclick="setSlots(2)">2슬롯</button>
+      </div>
+    </div>
+
+    <div class="section-label">슬롯 1</div>
+    <div class="field">
+      <label>진입 형태</label>
+      <div class="btn-group">
+        <button id="t0b" class="active" onclick="setType(0,'breakout')">초입</button>
+        <button id="t0p" onclick="setType(0,'pullback')">눌림</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>진입 차수</label>
+      <div class="btn-group">
+        <button id="g01" class="active" onclick="setStage(0,'1')">1차</button>
+        <button id="g02" onclick="setStage(0,'2')">2차</button>
+        <button id="g0e" onclick="setStage(0,'exit')">청산</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>현재 투입금</label>
+      <input type="text" id="holding0" inputmode="numeric" placeholder="0" oninput="onAmtInput(this, calculate)">
       <div class="unit-btns">
-        <button class="unit-btn" onclick="applyUnit('holding', 1000, calculate)">000</button>
-        <button class="unit-btn" onclick="applyUnit('holding', 10000, calculate)">만</button>
-        <button class="unit-btn" onclick="applyUnit('holding', 100000000, calculate)">억</button>
-        <button class="unit-btn" onclick="clearAmt('holding', calculate)">C</button>
+        <button class="unit-btn" onclick="applyUnit('holding0', 10000, calculate)">만</button>
+        <button class="unit-btn" onclick="applyUnit('holding0', 100000000, calculate)">억</button>
+        <button class="unit-btn" onclick="clearAmt('holding0', calculate)">C</button>
       </div>
     </div>
 
-    <div class="field">
-      <label>진입 유형</label>
-      <div class="btn-group">
-        <button id="typeA" class="active" onclick="setType('A')">A형 초입</button>
-        <button id="typeB" onclick="setType('B')">B형 조정후반등</button>
+    <div id="slot2" style="display:none">
+      <div class="section-label">슬롯 2</div>
+      <div class="field">
+        <label>진입 형태</label>
+        <div class="btn-group">
+          <button id="t1b" class="active" onclick="setType(1,'breakout')">초입</button>
+          <button id="t1p" onclick="setType(1,'pullback')">눌림</button>
+        </div>
       </div>
-    </div>
-
-    <div class="field">
-      <label>단계</label>
-      <div class="btn-group">
-        <button id="stage1" class="active" onclick="setStage('1')">1차</button>
-        <button id="stage2" onclick="setStage('2')">2차 완료</button>
-        <button id="stageExit" onclick="setStage('exit')">EXIT</button>
+      <div class="field">
+        <label>진입 차수</label>
+        <div class="btn-group">
+          <button id="g11" class="active" onclick="setStage(1,'1')">1차</button>
+          <button id="g12" onclick="setStage(1,'2')">2차</button>
+          <button id="g1e" onclick="setStage(1,'exit')">청산</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>현재 투입금</label>
+        <input type="text" id="holding1" inputmode="numeric" placeholder="0" oninput="onAmtInput(this, calculate)">
+        <div class="unit-btns">
+          <button class="unit-btn" onclick="applyUnit('holding1', 10000, calculate)">만</button>
+          <button class="unit-btn" onclick="applyUnit('holding1', 100000000, calculate)">억</button>
+          <button class="unit-btn" onclick="clearAmt('holding1', calculate)">C</button>
+        </div>
       </div>
     </div>
 
@@ -334,22 +368,25 @@
   </main>
 
   <script>
-    const state = { type: 'A', stage: '1' };
+    const state = {
+      slots: 1,
+      s: [
+        { type: 'breakout', stage: '1' },
+        { type: 'breakout', stage: '1' }
+      ]
+    };
 
-    const SLOT_FULL = 0.5;                                  // 슬롯풀 = 포트 50% (2슬롯 조건부)
-    const STAGE_RATIO = { A1: 0.20, B1: 0.70, S2: 1.00 };  // 슬롯풀 대비 staged 20/70/100
-
-    // 진입 상황 → 포트 목표비중 (슬롯풀 50% × staged)
-    function targetPct() {
-      if (state.stage === 'exit') return 0;
-      if (state.stage === '2') return SLOT_FULL * STAGE_RATIO.S2;                 // 0.50
-      return SLOT_FULL * (state.type === 'A' ? STAGE_RATIO.A1 : STAGE_RATIO.B1);  // A:0.10 B:0.35
+    // 한 슬롯 목표비중(총 투자금 대비). 슬롯당 최대 50%.
+    function slotTargetPct(sl) {
+      if (sl.stage === 'exit') return 0;
+      if (sl.stage === '2') return 0.50;                // 2차
+      return sl.type === 'breakout' ? 0.10 : 0.35;      // 초입 1차 / 눌림 1차
     }
 
-    function situationLabel() {
-      if (state.stage === 'exit') return '전량 EXIT';
-      if (state.stage === '2') return '2차 완료';
-      return state.type === 'A' ? 'A형 초입 · 1차' : 'B형 조정후반등 · 1차';
+    function slotLabel(sl) {
+      if (sl.stage === 'exit') return '청산';
+      if (sl.stage === '2') return '2차';
+      return sl.type === 'breakout' ? '초입 · 1차' : '눌림 · 1차';
     }
 
     function rawVal(id) {
@@ -400,22 +437,30 @@
       return n.toFixed(1) + '%';
     }
 
-    function setType(type) {
-      state.type = type;
-      document.getElementById('typeA').classList.toggle('active', type === 'A');
-      document.getElementById('typeB').classList.toggle('active', type === 'B');
+    function setType(i, type) {
+      state.s[i].type = type;
+      document.getElementById('t' + i + 'b').classList.toggle('active', type === 'breakout');
+      document.getElementById('t' + i + 'p').classList.toggle('active', type === 'pullback');
       calculate();
     }
 
-    function setStage(stage) {
-      state.stage = stage;
-      document.getElementById('stage1').classList.toggle('active', stage === '1');
-      document.getElementById('stage2').classList.toggle('active', stage === '2');
-      document.getElementById('stageExit').classList.toggle('active', stage === 'exit');
-      // 2차·EXIT는 진입유형과 무관 → 유형 버튼 dim
-      const typeDim = (stage === '2' || stage === 'exit');
-      document.getElementById('typeA').style.opacity = typeDim ? 0.4 : 1;
-      document.getElementById('typeB').style.opacity = typeDim ? 0.4 : 1;
+    function setStage(i, stage) {
+      state.s[i].stage = stage;
+      document.getElementById('g' + i + '1').classList.toggle('active', stage === '1');
+      document.getElementById('g' + i + '2').classList.toggle('active', stage === '2');
+      document.getElementById('g' + i + 'e').classList.toggle('active', stage === 'exit');
+      // 2차·청산은 진입 형태와 무관 → 형태 버튼 dim
+      const dim = (stage === '2' || stage === 'exit');
+      document.getElementById('t' + i + 'b').style.opacity = dim ? 0.4 : 1;
+      document.getElementById('t' + i + 'p').style.opacity = dim ? 0.4 : 1;
+      calculate();
+    }
+
+    function setSlots(n) {
+      state.slots = n;
+      document.getElementById('slots1').classList.toggle('active', n === 1);
+      document.getElementById('slots2').classList.toggle('active', n === 2);
+      document.getElementById('slot2').style.display = n === 2 ? '' : 'none';
       calculate();
     }
 
@@ -427,7 +472,6 @@
 
     function calculate() {
       const total = rawVal('total');
-      const holding = rawVal('holding');
       const el = document.getElementById('result');
 
       if (!total || total <= 0) {
@@ -435,76 +479,67 @@
         return;
       }
 
-      const tPct = targetPct();                       // 0 ~ 0.5
-      const targetAmount = total * tPct;
-      const delta = targetAmount - holding;
-      const currentPct = holding / total * 100;
-      const cashAfter = total - targetAmount;
-      const slotCap = total * SLOT_FULL;
+      const n = state.slots;
+      let sumTarget = 0, sumHold = 0, cards = '';
 
-      const deltaClass = delta > 0 ? 'pos' : delta < 0 ? 'neg' : 'zero';
-      const deltaLabel = delta > 0 ? '추가 필요금' : delta < 0 ? '축소 필요금' : '조정 없음';
-      const calloutClass = delta > 0 ? 'pos' : delta < 0 ? 'neg' : '';
+      for (let i = 0; i < n; i++) {
+        const sl = state.s[i];
+        const hold = rawVal('holding' + i);
+        const tp = slotTargetPct(sl);
+        const tgt = total * tp;
+        const delta = tgt - hold;
+        sumTarget += tgt;
+        sumHold += hold;
 
-      const calloutMap = {
-        A1: 'A형 초입 1차 — 슬롯풀(50%)의 20% = 포트 10%',
-        B1: 'B형 조정후반등 1차 — 슬롯풀(50%)의 70% = 포트 35%',
-        S2: '2차 재확인 완료 — 슬롯풀 100% = 포트 50% (단일 슬롯 상한)',
-        EX: '전량 EXIT — 목표 0%, 보유 전량 축소'
-      };
-      const ckey = state.stage === 'exit' ? 'EX' : state.stage === '2' ? 'S2' : (state.type === 'A' ? 'A1' : 'B1');
+        const dc = delta > 0 ? 'pos' : delta < 0 ? 'neg' : 'zero';
+        const dl = delta > 0 ? '추가 필요금' : delta < 0 ? '축소 필요금' : '조정 없음';
 
-      // staged 사다리 (선택 유형 기준): 1차 → 2차 완료
-      const first = SLOT_FULL * (state.type === 'A' ? STAGE_RATIO.A1 : STAGE_RATIO.B1);
-      const rows = [
-        { key: '1', label: state.type === 'A' ? '1차 초입' : '1차 반등', pct: first * 100 },
-        { key: '2', label: '2차 완료', pct: SLOT_FULL * STAGE_RATIO.S2 * 100 }
-      ].map(row => `
-        <div class="plan-row ${state.stage === row.key ? 'current' : ''}">
-          <span class="stage-tag">${row.label}</span>
-          <span class="row-value">${fmt(total * row.pct / 100)}</span>
-          <span class="row-pct">${pct(row.pct)}</span>
-        </div>
-      `).join('');
+        cards += `
+          <div class="section-label">슬롯 ${i + 1} · ${slotLabel(sl)}</div>
+          <div class="result">
+            <span class="result-label">${dl}</span>
+            <div class="result-amount ${dc}">${signedAmount(delta)}</div>
+          </div>
+          <div class="summary">
+            <div class="row">
+              <span class="row-label">목표금</span>
+              <span class="row-value">${fmt(tgt)}</span>
+              <span class="row-pct">${pct(tp * 100)}</span>
+            </div>
+            <div class="row">
+              <span class="row-label">현재 투입</span>
+              <span class="row-value">${fmt(hold)}</span>
+              <span class="row-pct">${pct(hold / total * 100)}</span>
+            </div>
+          </div>`;
+      }
 
-      el.innerHTML = `
-        <div class="result">
-          <span class="result-label">${deltaLabel}</span>
-          <div class="result-amount ${deltaClass}">${signedAmount(delta)}</div>
-        </div>
-
-        <div class="section-label">목표 · ${situationLabel()}</div>
+      const cash = total - sumTarget;
+      const sumHtml = `
+        <div class="section-label">합계</div>
         <div class="summary">
           <div class="row">
-            <span class="row-label">목표금</span>
-            <span class="row-value">${fmt(targetAmount)}</span>
-            <span class="row-pct">${pct(tPct * 100)}</span>
+            <span class="row-label">목표 합계</span>
+            <span class="row-value">${fmt(sumTarget)}</span>
+            <span class="row-pct">${pct(sumTarget / total * 100)}</span>
           </div>
           <div class="row">
-            <span class="row-label">현재 보유</span>
-            <span class="row-value">${fmt(holding)}</span>
-            <span class="row-pct">${pct(currentPct)}</span>
+            <span class="row-label">현재 투입</span>
+            <span class="row-value">${fmt(sumHold)}</span>
+            <span class="row-pct">${pct(sumHold / total * 100)}</span>
           </div>
           <div class="row">
             <span class="row-label">현금</span>
-            <span class="row-value">${fmt(cashAfter)}</span>
-            <span class="row-pct">${pct(100 - tPct * 100)}</span>
+            <span class="row-value">${fmt(cash)}</span>
+            <span class="row-pct">${pct(cash / total * 100)}</span>
           </div>
-          <div class="row">
-            <span class="row-label">슬롯풀 상한</span>
-            <span class="row-value">${fmt(slotCap)}</span>
-            <span class="row-pct">${pct(SLOT_FULL * 100)}</span>
-          </div>
-        </div>
+        </div>`;
 
-        <div class="plan-label">Staged 계획 (슬롯풀 50%)</div>
-        ${rows}
-
-        <div class="callout ${calloutClass}">
-          <div class="callout-title">v10 staged</div>
-          <div class="callout-text">${calloutMap[ckey]}</div>
-        </div>
-      `;
+      el.innerHTML = cards + sumHtml + `
+        <div class="callout">
+          <div class="callout-title">기준</div>
+          <div class="callout-text">한 슬롯 최대 50% · 초입 1차 10% / 눌림 1차 35% / 2차 50% / 청산 0%. 여력 시 우선순위: 2차 &gt; 눌림 &gt; 초입.</div>
+        </div>`;
     }
 
     if ('serviceWorker' in navigator) {

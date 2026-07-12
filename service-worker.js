@@ -1,4 +1,4 @@
-const CACHE = 'position-sizer-v6-staged';
+const CACHE = 'position-sizer-v7-slots';
 const ASSETS = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', e => {

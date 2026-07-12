@@ -1,7 +1,7 @@
 {
   "name": "비중 계산기",
   "short_name": "비중",
-  "description": "v10 staged 기준 — 진입유형(A형/B형)·단계(1차/2차/EXIT)별 목표 비중과 추가·축소 리밸런싱 금액 계산기 (슬롯풀 50%)",
+  "description": "슬롯(1·2)별 진입 형태(초입/눌림)·차수(1차/2차/청산) 목표 비중과 추가·축소 리밸런싱 금액 계산기 (슬롯당 최대 50%)",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
