@@ -49,7 +49,7 @@
     }
 
     header {
-      margin-bottom: 22px;
+      margin-bottom: 24px;
     }
 
     h1 {
@@ -68,12 +68,28 @@
       text-transform: uppercase;
     }
 
+    /* ── 존 구분 ── */
+    .zone-head {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 14px;
+      color: var(--text-3);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .zone-head::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border-sub);
+    }
+
     .field { margin-bottom: 20px; }
 
-    .field label,
-    .section-label,
-    .result-label,
-    .plan-label {
+    .field label {
       display: block;
       margin-bottom: 8px;
       color: var(--text-2);
@@ -107,8 +123,7 @@
 
     input[type="text"]::placeholder { color: var(--text-3); }
 
-    .unit-btns,
-    .btn-group {
+    .unit-btns {
       display: flex;
       gap: 8px;
       margin-top: 10px;
@@ -128,23 +143,32 @@
       transition: transform 0.12s ease, background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
     }
 
-    button:active { transform: scale(0.96); }
+    button:active { transform: scale(0.97); }
 
     .unit-btn {
       flex: 1;
       padding: 0 12px;
     }
 
-    .btn-group button {
-      flex: 1;
-      padding: 0 8px;
+    /* ── 상황 선택 트리거 ── */
+    .sit-trigger {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 52px;
+      padding: 0 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-1);
+      font-size: 18px;
+      font-weight: 600;
+      text-align: left;
     }
-
-    .btn-group button.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #0d0d0d;
-    }
+    .sit-trigger.placeholder { color: var(--text-3); font-weight: 500; }
+    .sit-trigger .chev { color: var(--text-3); font-size: 14px; flex-shrink: 0; }
 
     .divider {
       height: 1px;
@@ -152,30 +176,35 @@
       background: var(--border);
     }
 
+    /* ── 결과 ── */
     .result {
-      padding: 20px 0 18px;
-      border-bottom: 1px solid var(--border-sub);
-      margin-bottom: 20px;
+      padding: 4px 0 18px;
+    }
+
+    .result-label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text-2);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
     }
 
     .result-amount {
       color: var(--accent);
-      font-size: 36px;
+      font-size: 40px;
       font-weight: 700;
       line-height: 1;
       letter-spacing: 0;
       font-variant-numeric: tabular-nums;
       font-feature-settings: "tnum" 1;
     }
-
-    .result-amount.pos { color: var(--pos); }
-    .result-amount.neg { color: var(--neg); }
     .result-amount.zero { color: var(--text-3); }
 
     .summary {
       border-top: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
-      margin-bottom: 24px;
     }
 
     .row {
@@ -185,11 +214,10 @@
       padding: 12px 0;
       border-bottom: 1px solid var(--border-sub);
     }
-
     .row:last-child { border-bottom: none; }
 
     .row-label {
-      width: 88px;
+      width: 96px;
       flex-shrink: 0;
       color: var(--text-2);
       font-size: 13px;
@@ -198,88 +226,113 @@
     .row-value {
       flex: 1;
       text-align: right;
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 600;
       font-variant-numeric: tabular-nums;
       font-feature-settings: "tnum" 1;
     }
 
-    .row-pct {
-      width: 54px;
-      flex-shrink: 0;
-      color: var(--text-3);
-      font-size: 12px;
-      text-align: right;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .plan-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border-sub);
-      position: relative;
-    }
-
-    .plan-row:last-child { border-bottom: none; }
-
-    .plan-row.current::before {
-      content: "";
-      position: absolute;
-      left: -20px;
-      top: 0;
-      bottom: 0;
-      width: 2px;
-      border-radius: 0 2px 2px 0;
-      background: var(--accent);
-    }
-
-    .stage-tag {
-      width: 54px;
-      flex-shrink: 0;
-      color: var(--text-3);
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.03em;
-    }
-
-    .plan-row.current .stage-tag,
-    .plan-row.current .row-value {
-      color: var(--accent);
-    }
-
-    .callout {
-      margin-top: 20px;
-      padding: 15px 16px;
-      border-left: 3px solid var(--border);
-      border-radius: 10px;
-      background: var(--surface);
-    }
-
-    .callout.pos { background: var(--pos-dim); border-left-color: var(--pos); }
-    .callout.neg { background: var(--neg-dim); border-left-color: var(--neg); }
-
-    .callout-title {
-      color: var(--text-2);
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-      margin-bottom: 5px;
-    }
-
-    .callout-text {
-      color: var(--text-1);
-      font-size: 14px;
-    }
-
     .empty {
-      padding: 48px 0 16px;
+      padding: 40px 0 12px;
       text-align: center;
       color: var(--text-3);
       font-size: 14px;
       letter-spacing: 0.02em;
+    }
+
+    .foot-note {
+      margin-top: 22px;
+      color: var(--text-3);
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      text-align: center;
+    }
+
+    /* ── 바텀시트 ── */
+    .sheet-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.22s ease, visibility 0.22s ease;
+      z-index: 10;
+    }
+    .sheet-overlay.open { opacity: 1; visibility: visible; }
+
+    .sheet {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 11;
+      max-width: 520px;
+      margin: 0 auto;
+      background: var(--surface);
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      border: 1px solid var(--border);
+      border-bottom: none;
+      padding: 10px 16px calc(env(safe-area-inset-bottom) + 20px);
+      transform: translateY(101%);
+      transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .sheet.open { transform: translateY(0); }
+
+    .sheet-handle {
+      width: 40px;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--border);
+      margin: 6px auto 14px;
+    }
+
+    .sheet-title {
+      color: var(--text-3);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      margin: 0 4px 8px;
+    }
+
+    .sheet-row {
+      width: 100%;
+      display: block;
+      min-height: 0;
+      padding: 14px 14px;
+      margin-top: 8px;
+      background: var(--surface-up);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      text-align: left;
+    }
+    .sheet-row.sel { border-color: var(--accent-line); background: var(--accent-dim); }
+
+    .sheet-row-main {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .sheet-row-label {
+      color: var(--text-1);
+      font-size: 17px;
+      font-weight: 600;
+    }
+    .sheet-row.sel .sheet-row-label { color: var(--accent); }
+    .sheet-row-amt {
+      color: var(--accent);
+      font-size: 18px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
+    }
+    .sheet-row-sub {
+      margin-top: 4px;
+      color: var(--text-3);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
     }
   </style>
 </head>
@@ -287,11 +340,13 @@
   <main class="app">
     <header>
       <h1>비중 계산기</h1>
-      <div class="meta">슬롯당 최대 50% · 초입 10 / 눌림 35 / 2차 50</div>
+      <div class="meta">이번 스텝 추가액 · 슬롯 상한 50%</div>
     </header>
 
+    <div class="zone-head">입력</div>
+
     <div class="field">
-      <label>총 투자금</label>
+      <label>총 자본금</label>
       <input type="text" id="total" inputmode="numeric" placeholder="0" oninput="onAmtInput(this, calculate)">
       <div class="unit-btns">
         <button class="unit-btn" onclick="applyUnit('total', 1000, calculate)">000</button>
@@ -302,92 +357,41 @@
     </div>
 
     <div class="field">
-      <label>슬롯 수</label>
-      <div class="btn-group">
-        <button id="slots1" class="active" onclick="setSlots(1)">1슬롯</button>
-        <button id="slots2" onclick="setSlots(2)">2슬롯</button>
-      </div>
-    </div>
-
-    <div class="section-label">슬롯 1</div>
-    <div class="field">
-      <label>진입 형태</label>
-      <div class="btn-group">
-        <button id="t0b" class="active" onclick="setType(0,'breakout')">초입</button>
-        <button id="t0p" onclick="setType(0,'pullback')">눌림</button>
-      </div>
-    </div>
-    <div class="field">
-      <label>진입 차수</label>
-      <div class="btn-group">
-        <button id="g01" class="active" onclick="setStage(0,'1')">1차</button>
-        <button id="g02" onclick="setStage(0,'2')">2차</button>
-        <button id="g0e" onclick="setStage(0,'exit')">청산</button>
-      </div>
-    </div>
-    <div class="field">
-      <label>현재 투입금</label>
-      <input type="text" id="holding0" inputmode="numeric" placeholder="0" oninput="onAmtInput(this, calculate)">
-      <div class="unit-btns">
-        <button class="unit-btn" onclick="applyUnit('holding0', 10000, calculate)">만</button>
-        <button class="unit-btn" onclick="applyUnit('holding0', 100000000, calculate)">억</button>
-        <button class="unit-btn" onclick="clearAmt('holding0', calculate)">C</button>
-      </div>
-    </div>
-
-    <div id="slot2" style="display:none">
-      <div class="section-label">슬롯 2</div>
-      <div class="field">
-        <label>진입 형태</label>
-        <div class="btn-group">
-          <button id="t1b" class="active" onclick="setType(1,'breakout')">초입</button>
-          <button id="t1p" onclick="setType(1,'pullback')">눌림</button>
-        </div>
-      </div>
-      <div class="field">
-        <label>진입 차수</label>
-        <div class="btn-group">
-          <button id="g11" class="active" onclick="setStage(1,'1')">1차</button>
-          <button id="g12" onclick="setStage(1,'2')">2차</button>
-          <button id="g1e" onclick="setStage(1,'exit')">청산</button>
-        </div>
-      </div>
-      <div class="field">
-        <label>현재 투입금</label>
-        <input type="text" id="holding1" inputmode="numeric" placeholder="0" oninput="onAmtInput(this, calculate)">
-        <div class="unit-btns">
-          <button class="unit-btn" onclick="applyUnit('holding1', 10000, calculate)">만</button>
-          <button class="unit-btn" onclick="applyUnit('holding1', 100000000, calculate)">억</button>
-          <button class="unit-btn" onclick="clearAmt('holding1', calculate)">C</button>
-        </div>
-      </div>
+      <label>상황</label>
+      <button class="sit-trigger placeholder" id="sitTrigger" onclick="openSheet()">
+        <span id="sitTriggerLabel">상황 선택</span>
+        <span class="chev">▾</span>
+      </button>
     </div>
 
     <div class="divider"></div>
+
+    <div class="zone-head">결과</div>
     <div id="result"></div>
+
+    <div class="foot-note">v10 staged · 초입1차 10 / 눌림1차 35 / 2차 50%</div>
   </main>
 
+  <div class="sheet-overlay" id="overlay" onclick="closeSheet()"></div>
+  <div class="sheet" id="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">상황 선택 · 이번 추가액</div>
+    <div id="sheetList"></div>
+  </div>
+
   <script>
-    const state = {
-      slots: 1,
-      s: [
-        { type: 'breakout', stage: '1' },
-        { type: 'breakout', stage: '1' }
-      ]
-    };
+    // 상황별 이번 스텝 추가 비중(총자본 대비). 직전 차수는 staged 플랜값 가정.
+    //   초입1차 10 · 눌림1차 35 · 2차 완료 50 → 증분:
+    //   초입1차 진입 = +10 / 눌림1차 진입 = +35 / 초입1차→2차 = +40 / 눌림1차→2차 = +15
+    // 단일 소스: 아래 배열만 수정한다. 값은 지침 v10(사례73) 확정분 — 임의 변경 금지.
+    const SIT = [
+      { key: 'b1', label: '초입 1차',        flow: '0 → 10%',  inc: 0.10 },
+      { key: 'p1', label: '눌림 1차',        flow: '0 → 35%',  inc: 0.35 },
+      { key: 'b2', label: '초입 1차 → 2차',  flow: '10 → 50%', inc: 0.40 },
+      { key: 'p2', label: '눌림 1차 → 2차',  flow: '35 → 50%', inc: 0.15 }
+    ];
 
-    // 한 슬롯 목표비중(총 투자금 대비). 슬롯당 최대 50%.
-    function slotTargetPct(sl) {
-      if (sl.stage === 'exit') return 0;
-      if (sl.stage === '2') return 0.50;                // 2차
-      return sl.type === 'breakout' ? 0.10 : 0.35;      // 초입 1차 / 눌림 1차
-    }
-
-    function slotLabel(sl) {
-      if (sl.stage === 'exit') return '청산';
-      if (sl.stage === '2') return '2차';
-      return sl.type === 'breakout' ? '초입 · 1차' : '눌림 · 1차';
-    }
+    let selected = null;
 
     function rawVal(id) {
       const v = document.getElementById(id).value.replace(/,/g, '');
@@ -433,113 +437,67 @@
       return Math.round(n).toLocaleString('ko-KR') + '원';
     }
 
-    function pct(n) {
-      return n.toFixed(1) + '%';
+    function openSheet() {
+      renderSheet();
+      document.getElementById('overlay').classList.add('open');
+      document.getElementById('sheet').classList.add('open');
     }
 
-    function setType(i, type) {
-      state.s[i].type = type;
-      document.getElementById('t' + i + 'b').classList.toggle('active', type === 'breakout');
-      document.getElementById('t' + i + 'p').classList.toggle('active', type === 'pullback');
+    function closeSheet() {
+      document.getElementById('overlay').classList.remove('open');
+      document.getElementById('sheet').classList.remove('open');
+    }
+
+    function selectSit(key) {
+      selected = key;
+      closeSheet();
       calculate();
     }
 
-    function setStage(i, stage) {
-      state.s[i].stage = stage;
-      document.getElementById('g' + i + '1').classList.toggle('active', stage === '1');
-      document.getElementById('g' + i + '2').classList.toggle('active', stage === '2');
-      document.getElementById('g' + i + 'e').classList.toggle('active', stage === 'exit');
-      // 2차·청산은 진입 형태와 무관 → 형태 버튼 dim
-      const dim = (stage === '2' || stage === 'exit');
-      document.getElementById('t' + i + 'b').style.opacity = dim ? 0.4 : 1;
-      document.getElementById('t' + i + 'p').style.opacity = dim ? 0.4 : 1;
-      calculate();
-    }
-
-    function setSlots(n) {
-      state.slots = n;
-      document.getElementById('slots1').classList.toggle('active', n === 1);
-      document.getElementById('slots2').classList.toggle('active', n === 2);
-      document.getElementById('slot2').style.display = n === 2 ? '' : 'none';
-      calculate();
-    }
-
-    function signedAmount(n) {
-      if (n > 0) return '+' + fmt(n);
-      if (n < 0) return '−' + fmt(Math.abs(n));
-      return fmt(0);
+    function renderSheet() {
+      const total = rawVal('total');
+      document.getElementById('sheetList').innerHTML = SIT.map(function (s) {
+        const amt = total > 0 ? '+' + fmt(total * s.inc) : (s.inc * 100).toFixed(0) + '%';
+        return '<button class="sheet-row ' + (selected === s.key ? 'sel' : '') + '" onclick="selectSit(\'' + s.key + '\')">'
+          + '<div class="sheet-row-main">'
+          + '<span class="sheet-row-label">' + s.label + '</span>'
+          + '<span class="sheet-row-amt">' + amt + '</span>'
+          + '</div>'
+          + '<div class="sheet-row-sub">' + s.flow + ' · 총자본의 ' + (s.inc * 100).toFixed(0) + '%</div>'
+          + '</button>';
+      }).join('');
     }
 
     function calculate() {
+      renderSheet();
       const total = rawVal('total');
       const el = document.getElementById('result');
+      const trigger = document.getElementById('sitTrigger');
+      const sit = selected ? SIT.find(function (s) { return s.key === selected; }) : null;
+
+      document.getElementById('sitTriggerLabel').textContent = sit ? sit.label : '상황 선택';
+      trigger.classList.toggle('placeholder', !sit);
 
       if (!total || total <= 0) {
-        el.innerHTML = '<p class="empty">총 투자금을 입력하세요</p>';
+        el.innerHTML = '<p class="empty">총 자본금을 입력하세요</p>';
+        return;
+      }
+      if (!sit) {
+        el.innerHTML = '<p class="empty">상황을 선택하세요</p>';
         return;
       }
 
-      const n = state.slots;
-      let sumTarget = 0, sumHold = 0, cards = '';
-
-      for (let i = 0; i < n; i++) {
-        const sl = state.s[i];
-        const hold = rawVal('holding' + i);
-        const tp = slotTargetPct(sl);
-        const tgt = total * tp;
-        const delta = tgt - hold;
-        sumTarget += tgt;
-        sumHold += hold;
-
-        const dc = delta > 0 ? 'pos' : delta < 0 ? 'neg' : 'zero';
-        const dl = delta > 0 ? '추가 필요금' : delta < 0 ? '축소 필요금' : '조정 없음';
-
-        cards += `
-          <div class="section-label">슬롯 ${i + 1} · ${slotLabel(sl)}</div>
-          <div class="result">
-            <span class="result-label">${dl}</span>
-            <div class="result-amount ${dc}">${signedAmount(delta)}</div>
-          </div>
-          <div class="summary">
-            <div class="row">
-              <span class="row-label">목표금</span>
-              <span class="row-value">${fmt(tgt)}</span>
-              <span class="row-pct">${pct(tp * 100)}</span>
-            </div>
-            <div class="row">
-              <span class="row-label">현재 투입</span>
-              <span class="row-value">${fmt(hold)}</span>
-              <span class="row-pct">${pct(hold / total * 100)}</span>
-            </div>
-          </div>`;
-      }
-
-      const cash = total - sumTarget;
-      const sumHtml = `
-        <div class="section-label">합계</div>
-        <div class="summary">
-          <div class="row">
-            <span class="row-label">목표 합계</span>
-            <span class="row-value">${fmt(sumTarget)}</span>
-            <span class="row-pct">${pct(sumTarget / total * 100)}</span>
-          </div>
-          <div class="row">
-            <span class="row-label">현재 투입</span>
-            <span class="row-value">${fmt(sumHold)}</span>
-            <span class="row-pct">${pct(sumHold / total * 100)}</span>
-          </div>
-          <div class="row">
-            <span class="row-label">현금</span>
-            <span class="row-value">${fmt(cash)}</span>
-            <span class="row-pct">${pct(cash / total * 100)}</span>
-          </div>
-        </div>`;
-
-      el.innerHTML = cards + sumHtml + `
-        <div class="callout">
-          <div class="callout-title">기준</div>
-          <div class="callout-text">한 슬롯 최대 50% · 초입 1차 10% / 눌림 1차 35% / 2차 50% / 청산 0%. 여력 시 우선순위: 2차 &gt; 눌림 &gt; 초입.</div>
-        </div>`;
+      const amt = total * sit.inc;
+      el.innerHTML =
+        '<div class="result">'
+        + '<span class="result-label">이번 추가</span>'
+        + '<div class="result-amount">+' + fmt(amt) + '</div>'
+        + '</div>'
+        + '<div class="summary">'
+        + '<div class="row"><span class="row-label">상황</span><span class="row-value">' + sit.label + '</span></div>'
+        + '<div class="row"><span class="row-label">비중 이동</span><span class="row-value">' + sit.flow + '</span></div>'
+        + '<div class="row"><span class="row-label">총자본 대비</span><span class="row-value">' + (sit.inc * 100).toFixed(0) + '%</span></div>'
+        + '</div>';
     }
 
     if ('serviceWorker' in navigator) {
