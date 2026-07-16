@@ -28,6 +28,10 @@
       --pos-dim: #0d1f16;
       --neg: #c24a4a;
       --neg-dim: #1f0d0d;
+      /* 전략 구분: 개별주 = 골드(--accent), 섹터 = 블루 */
+      --sector: #4f9ac4;
+      --sector-dim: #0d1922;
+      --sector-line: #22404f;
     }
 
     html { -webkit-text-size-adjust: 100%; }
@@ -309,13 +313,22 @@
       display: block;
       min-height: 0;
       padding: 14px 14px;
-      margin-top: 8px;
+      margin-top: 13px;
       background: var(--surface-up);
       border: 1px solid var(--border);
       border-radius: 12px;
       text-align: left;
     }
+    .sheet-row:first-child { margin-top: 4px; }
     .sheet-row.sel { border-color: var(--accent-line); background: var(--accent-dim); }
+
+    /* 전략별 좌측 액센트 바 + 색 구분 */
+    .sheet-row.strat-equity { box-shadow: inset 3px 0 0 var(--accent-line); }
+    .sheet-row.strat-sector { box-shadow: inset 3px 0 0 var(--sector-line); }
+    .sheet-row.strat-sector .sheet-row-amt { color: var(--sector); }
+    .sheet-row.strat-sector.sel { border-color: var(--sector-line); background: var(--sector-dim); box-shadow: inset 3px 0 0 var(--sector); }
+    .sheet-row.strat-sector.sel .sheet-row-label { color: var(--sector); }
+    .sheet-row.strat-equity.sel { box-shadow: inset 3px 0 0 var(--accent); }
 
     .sheet-row-main {
       display: flex;
@@ -479,7 +492,7 @@
         const pct = (totalPct(s) * 100).toFixed(s.strat === 'equity' && s.inc < 0.2 ? 1 : 0);
         const amt = total > 0 ? sign + fmt(calcAmt(total, s)) : pct + '%';
         const stratTag = s.strat === 'sector' ? '섹터' : '개별주';
-        return '<button class="sheet-row ' + (selected === s.key ? 'sel' : '') + '" onclick="selectSit(\'' + s.key + '\')">'
+        return '<button class="sheet-row strat-' + s.strat + ' ' + (selected === s.key ? 'sel' : '') + '" onclick="selectSit(\'' + s.key + '\')">'
           + '<div class="sheet-row-main">'
           + '<span class="sheet-row-label">' + s.label + '</span>'
           + '<span class="sheet-row-amt">' + amt + '</span>'
