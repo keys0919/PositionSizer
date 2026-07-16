@@ -388,16 +388,26 @@
   </div>
 
   <script>
-    // 상황별 이번 스텝 추가 비중(총자본 대비). 직전 차수는 staged 플랜값 가정.
-    //   초입1차 10 · 눌림1차 35 · 2차 완료 50 → 증분:
-    //   초입1차 진입 = +10 / 눌림1차 진입 = +35 / 초입1차→2차 = +40 / 눌림1차→2차 = +15
-    // 단일 소스: 아래 배열만 수정한다. 값은 지침 v10(사례73) 확정분 — 임의 변경 금지.
+    // 자본 배분(전략몫). 개별주:섹터 = 50:50 (검증 고원 40~60% 중심). 총자본을 두 전략이 나눠 쓴다.
+    const ALLOC = { equity: 0.5, sector: 0.5 };
+
+    // 상황별 비중. inc는 "해당 전략 배정액(총자본 × ALLOC) 대비" 비율 — 지침 값 유지, 분모만 전략몫.
+    //   개별주(equity, mode:add=증분): 직전 차수는 staged 플랜값 가정. 초입1차 10·눌림1차 35·2차 50.
+    //     초입1차 +10 / 눌림1차 +35 / 초입1차→2차 +40 / 눌림1차→2차 +15  (개별주몫 대비, 지침 사례73 확정 — 임의 변경 금지)
+    //   섹터(sector, mode:target=목표 보유): 월별 상위2 각 50%. 종목당 목표 = 섹터몫의 50%.
+    // 실제 총자본 대비 = ALLOC[strat] × inc (개별주 초입1차 = 0.5×0.10 = 5%, 섹터 종목당 = 0.5×0.50 = 25%).
     const SIT = [
-      { key: 'b1', label: '초입 1차',        flow: '0 → 10%',  inc: 0.10 },
-      { key: 'p1', label: '눌림 1차',        flow: '0 → 35%',  inc: 0.35 },
-      { key: 'b2', label: '초입 1차 → 2차',  flow: '10 → 50%', inc: 0.40 },
-      { key: 'p2', label: '눌림 1차 → 2차',  flow: '35 → 50%', inc: 0.15 }
+      { key: 'b1',  label: '초입 1차',          flow: '0 → 10%',  inc: 0.10, strat: 'equity', mode: 'add' },
+      { key: 'p1',  label: '눌림 1차',          flow: '0 → 35%',  inc: 0.35, strat: 'equity', mode: 'add' },
+      { key: 'b2',  label: '초입 1차 → 2차',    flow: '10 → 50%', inc: 0.40, strat: 'equity', mode: 'add' },
+      { key: 'p2',  label: '눌림 1차 → 2차',    flow: '35 → 50%', inc: 0.15, strat: 'equity', mode: 'add' },
+      { key: 'sec', label: '섹터 ETF · 종목당', flow: '목표 50%', inc: 0.50, strat: 'sector', mode: 'target' }
     ];
+
+    // 전략 배정액 대비 → 총자본 대비 실제 비율
+    function totalPct(s) { return ALLOC[s.strat] * s.inc; }
+    // 계산액 = 총자본 × 전략몫 × 전략내 비율
+    function calcAmt(total, s) { return total * totalPct(s); }
 
     let selected = null;
 
@@ -465,13 +475,16 @@
     function renderSheet() {
       const total = rawVal('total');
       document.getElementById('sheetList').innerHTML = SIT.map(function (s) {
-        const amt = total > 0 ? '+' + fmt(total * s.inc) : (s.inc * 100).toFixed(0) + '%';
+        const sign = s.mode === 'target' ? '' : '+';
+        const pct = (totalPct(s) * 100).toFixed(s.strat === 'equity' && s.inc < 0.2 ? 1 : 0);
+        const amt = total > 0 ? sign + fmt(calcAmt(total, s)) : pct + '%';
+        const stratTag = s.strat === 'sector' ? '섹터' : '개별주';
         return '<button class="sheet-row ' + (selected === s.key ? 'sel' : '') + '" onclick="selectSit(\'' + s.key + '\')">'
           + '<div class="sheet-row-main">'
           + '<span class="sheet-row-label">' + s.label + '</span>'
           + '<span class="sheet-row-amt">' + amt + '</span>'
           + '</div>'
-          + '<div class="sheet-row-sub">' + s.flow + ' · 총자본의 ' + (s.inc * 100).toFixed(0) + '%</div>'
+          + '<div class="sheet-row-sub">' + stratTag + ' · ' + s.flow + ' · 총자본의 ' + pct + '%</div>'
           + '</button>';
       }).join('');
     }
@@ -495,16 +508,21 @@
         return;
       }
 
-      const amt = total * sit.inc;
+      const amt = calcAmt(total, sit);
+      const isTarget = sit.mode === 'target';
+      const sign = isTarget ? '' : '+';
+      const pct = (totalPct(sit) * 100).toFixed(sit.strat === 'equity' && sit.inc < 0.2 ? 1 : 0);
+      const stratLabel = sit.strat === 'sector' ? '섹터 ETF (몫 50%)' : '개별주 (몫 50%)';
       el.innerHTML =
         '<div class="result">'
-        + '<span class="result-label">이번 추가</span>'
-        + '<div class="result-amount">+' + fmt(amt) + '</div>'
+        + '<span class="result-label">' + (isTarget ? '목표 보유' : '이번 추가') + '</span>'
+        + '<div class="result-amount">' + sign + fmt(amt) + '</div>'
         + '</div>'
         + '<div class="summary">'
+        + '<div class="row"><span class="row-label">전략</span><span class="row-value">' + stratLabel + '</span></div>'
         + '<div class="row"><span class="row-label">상황</span><span class="row-value">' + sit.label + '</span></div>'
-        + '<div class="row"><span class="row-label">비중 이동</span><span class="row-value">' + sit.flow + '</span></div>'
-        + '<div class="row"><span class="row-label">총자본 대비</span><span class="row-value">' + (sit.inc * 100).toFixed(0) + '%</span></div>'
+        + '<div class="row"><span class="row-label">비중 이동</span><span class="row-value">' + sit.flow + (isTarget ? ' (섹터몫)' : ' (개별주몫)') + '</span></div>'
+        + '<div class="row"><span class="row-label">총자본 대비</span><span class="row-value">' + pct + '%</span></div>'
         + '</div>';
     }
 
