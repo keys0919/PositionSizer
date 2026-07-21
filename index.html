@@ -390,7 +390,7 @@
     <div class="zone-head">결과</div>
     <div id="result"></div>
 
-    <div class="foot-note">v10 staged · 초입1차 10 / 눌림1차 35 / 2차 50%</div>
+    <div class="foot-note">v10 staged · 초입1차 10 / 눌림1차 35 / 2차 50% · 섹터 오버레이 25%</div>
   </main>
 
   <div class="sheet-overlay" id="overlay" onclick="closeSheet()"></div>
@@ -401,26 +401,26 @@
   </div>
 
   <script>
-    // 자본 배분(전략몫). 개별주:섹터 = 50:50 (검증 고원 40~60% 중심). 총자본을 두 전략이 나눠 쓴다.
-    const ALLOC = { equity: 0.5, sector: 0.5 };
-
-    // 상황별 비중. inc는 "해당 전략 배정액(총자본 × ALLOC) 대비" 비율 — 지침 값 유지, 분모만 전략몫.
-    //   개별주(equity, mode:add=증분): 직전 차수는 staged 플랜값 가정. 초입1차 10·눌림1차 35·2차 50.
-    //     초입1차 +10 / 눌림1차 +35 / 초입1차→2차 +40 / 눌림1차→2차 +15  (개별주몫 대비, 지침 사례73 확정 — 임의 변경 금지)
-    //   섹터(sector, mode:target=목표 보유): 월별 상위2 각 50%. 종목당 목표 = 섹터몫의 50%.
-    // 실제 총자본 대비 = ALLOC[strat] × inc (개별주 초입1차 = 0.5×0.10 = 5%, 섹터 종목당 = 0.5×0.50 = 25%).
+    // 개별주 = 베이스 전략(전 자본 기준). 2슬롯 × 슬롯상한 50% = 최대 100%.
+    // 섹터 = 리더 위성 오버레이(유휴 슬롯 자본을 同섹터 단일 ETF로). 리더와 동방향 상관(~0.89)이라
+    //   풀슬롯 미만으로 사이징 = 반슬롯 상한 총자본 25%(리스크 다이얼, sub-Kelly 헤드룸 내).
+    //   예: 200만 → 슬롯 100만 / 오버레이 최대 50만.
+    // pct = 총자본 대비 직접 비율.
+    //   개별주(equity, mode:add=증분): 직전 차수 staged 플랜값 가정. 초입1차 10·눌림1차 35·2차 50%(총자본, v10 확정 — 임의 변경 금지).
+    //     초입1차 +10 / 눌림1차 +35 / 초입1차→2차 +40 / 눌림1차→2차 +15
+    //   섹터(sector, mode:target=목표 보유): 단일 ETF 오버레이, 총자본 25% 상한(반슬롯).
     const SIT = [
-      { key: 'b1',  label: '초입 1차',          flow: '0 → 10%',  inc: 0.10, strat: 'equity', mode: 'add' },
-      { key: 'p1',  label: '눌림 1차',          flow: '0 → 35%',  inc: 0.35, strat: 'equity', mode: 'add' },
-      { key: 'b2',  label: '초입 1차 → 2차',    flow: '10 → 50%', inc: 0.40, strat: 'equity', mode: 'add' },
-      { key: 'p2',  label: '눌림 1차 → 2차',    flow: '35 → 50%', inc: 0.15, strat: 'equity', mode: 'add' },
-      { key: 'sec', label: '섹터 ETF · 종목당', flow: '목표 50%', inc: 0.50, strat: 'sector', mode: 'target' }
+      { key: 'b1',  label: '초입 1차',                 flow: '0 → 10%',  pct: 0.10, strat: 'equity', mode: 'add' },
+      { key: 'p1',  label: '눌림 1차',                 flow: '0 → 35%',  pct: 0.35, strat: 'equity', mode: 'add' },
+      { key: 'b2',  label: '초입 1차 → 2차',           flow: '10 → 50%', pct: 0.40, strat: 'equity', mode: 'add' },
+      { key: 'p2',  label: '눌림 1차 → 2차',           flow: '35 → 50%', pct: 0.15, strat: 'equity', mode: 'add' },
+      { key: 'sec', label: '섹터 오버레이 · 단일 ETF', flow: '목표 25%', pct: 0.25, strat: 'sector', mode: 'target' }
     ];
 
-    // 전략 배정액 대비 → 총자본 대비 실제 비율
-    function totalPct(s) { return ALLOC[s.strat] * s.inc; }
-    // 계산액 = 총자본 × 전략몫 × 전략내 비율
-    function calcAmt(total, s) { return total * totalPct(s); }
+    // 총자본 대비 실제 비율 = pct (개별주=전 자본 기준, 섹터=오버레이 반슬롯 상한)
+    function totalPct(s) { return s.pct; }
+    // 계산액 = 총자본 × pct
+    function calcAmt(total, s) { return total * s.pct; }
 
     let selected = null;
 
@@ -489,9 +489,9 @@
       const total = rawVal('total');
       document.getElementById('sheetList').innerHTML = SIT.map(function (s) {
         const sign = s.mode === 'target' ? '' : '+';
-        const pct = (totalPct(s) * 100).toFixed(s.strat === 'equity' && s.inc < 0.2 ? 1 : 0);
+        const pct = (totalPct(s) * 100).toFixed(0);
         const amt = total > 0 ? sign + fmt(calcAmt(total, s)) : pct + '%';
-        const stratTag = s.strat === 'sector' ? '섹터' : '개별주';
+        const stratTag = s.strat === 'sector' ? '오버레이' : '개별주';
         return '<button class="sheet-row strat-' + s.strat + ' ' + (selected === s.key ? 'sel' : '') + '" onclick="selectSit(\'' + s.key + '\')">'
           + '<div class="sheet-row-main">'
           + '<span class="sheet-row-label">' + s.label + '</span>'
@@ -524,8 +524,8 @@
       const amt = calcAmt(total, sit);
       const isTarget = sit.mode === 'target';
       const sign = isTarget ? '' : '+';
-      const pct = (totalPct(sit) * 100).toFixed(sit.strat === 'equity' && sit.inc < 0.2 ? 1 : 0);
-      const stratLabel = sit.strat === 'sector' ? '섹터 ETF (몫 50%)' : '개별주 (몫 50%)';
+      const pct = (totalPct(sit) * 100).toFixed(0);
+      const stratLabel = sit.strat === 'sector' ? '섹터 오버레이 (반슬롯 25%)' : '개별주 (슬롯 50%)';
       el.innerHTML =
         '<div class="result">'
         + '<span class="result-label">' + (isTarget ? '목표 보유' : '이번 추가') + '</span>'
@@ -534,7 +534,7 @@
         + '<div class="summary">'
         + '<div class="row"><span class="row-label">전략</span><span class="row-value">' + stratLabel + '</span></div>'
         + '<div class="row"><span class="row-label">상황</span><span class="row-value">' + sit.label + '</span></div>'
-        + '<div class="row"><span class="row-label">비중 이동</span><span class="row-value">' + sit.flow + (isTarget ? ' (섹터몫)' : ' (개별주몫)') + '</span></div>'
+        + '<div class="row"><span class="row-label">비중 이동</span><span class="row-value">' + sit.flow + (isTarget ? ' (오버레이 상한)' : ' (총자본)') + '</span></div>'
         + '<div class="row"><span class="row-label">총자본 대비</span><span class="row-value">' + pct + '%</span></div>'
         + '</div>';
     }
