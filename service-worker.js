@@ -1,4 +1,4 @@
-const CACHE = 'position-sizer-v8-overlay';
+const CACHE = 'position-sizer-v9-equity-only';
 const ASSETS = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
